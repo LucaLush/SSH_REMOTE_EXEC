@@ -42,23 +42,34 @@ class EditServerDialog(
             }
         }
 
-        fun updateKeySpinner() {
+        var selectedKeyId: String = existingServer?.keyId ?: ""
+        var currentFilteredKeys = listOf<KeyEntity>()
+
+        fun updateKeyDropdown() {
             val isKeyMode = binding.rbAuthKey.isChecked
-            val filteredKeys = allKeys.filter {
+            currentFilteredKeys = allKeys.filter {
                 if (isKeyMode) it.type == KeyType.PRIVATE_KEY else it.type == KeyType.PASSWORD
             }
-            val keyNames = filteredKeys.map { "${it.name} (${if (it.type == KeyType.PRIVATE_KEY) "私钥" else "密码"})" }
-            val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, keyNames)
-            binding.spinnerKeys.adapter = adapter
+            val keyNames = currentFilteredKeys.map { "${it.name} (${if (it.type == KeyType.PRIVATE_KEY) "私钥" else "密码"})" }
+            val adapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, keyNames)
+            binding.actvKeys.setAdapter(adapter)
 
-            if (existingServer != null) {
-                val index = filteredKeys.indexOfFirst { it.id == existingServer.keyId }
-                if (index >= 0) binding.spinnerKeys.setSelection(index)
+            if (currentFilteredKeys.isNotEmpty()) {
+                val index = currentFilteredKeys.indexOfFirst { it.id == selectedKeyId }.let { if (it >= 0) it else 0 }
+                binding.actvKeys.setText(keyNames[index], false)
+                selectedKeyId = currentFilteredKeys[index].id
+            } else {
+                binding.actvKeys.setText("", false)
+                selectedKeyId = ""
+            }
+
+            binding.actvKeys.setOnItemClickListener { _, _, position, _ ->
+                selectedKeyId = currentFilteredKeys.getOrNull(position)?.id ?: ""
             }
         }
 
         binding.rgAuthType.setOnCheckedChangeListener { _, _ ->
-            updateKeySpinner()
+            updateKeyDropdown()
         }
 
         val dialog = MaterialAlertDialogBuilder(context)
@@ -70,7 +81,7 @@ class EditServerDialog(
         scope.launch {
             allKeys = App.database.keyDao().getAll()
             withContext(Dispatchers.Main) {
-                updateKeySpinner()
+                updateKeyDropdown()
             }
         }
 
@@ -97,16 +108,12 @@ class EditServerDialog(
                 }
 
                 val isKeyMode = (authType == AuthType.KEY)
-                val filteredKeys = allKeys.filter {
-                    if (isKeyMode) it.type == KeyType.PRIVATE_KEY else it.type == KeyType.PASSWORD
-                }
-                if (filteredKeys.isEmpty()) {
+                if (currentFilteredKeys.isEmpty() || selectedKeyId.isEmpty()) {
                     Toast.makeText(context, "请先在【凭证】页添加对应的${if (isKeyMode) "私钥" else "密码"}", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
 
-                val selectedKeyIndex = binding.spinnerKeys.selectedItemPosition
-                val keyId = filteredKeys.getOrNull(selectedKeyIndex)?.id ?: ""
+                val keyId = selectedKeyId
 
                 scope.launch {
                     val serverDao = App.database.serverDao()

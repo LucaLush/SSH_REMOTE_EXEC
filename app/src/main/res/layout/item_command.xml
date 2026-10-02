@@ -78,10 +78,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:background="#1E293B"
+            android:background="@drawable/bg_code_snippet"
             android:fontFamily="monospace"
-            android:padding="10dp"
-            android:textColor="#E2E8F0"
+            android:padding="12dp"
+            android:textColor="#38BDF8"
             android:textSize="13sp" />
 
         <!-- Action Buttons -->

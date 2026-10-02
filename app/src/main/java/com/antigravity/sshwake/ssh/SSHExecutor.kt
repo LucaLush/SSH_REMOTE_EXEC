@@ -9,7 +9,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.schmizz.sshj.SSHClient
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.io.InputStream
+import java.security.Security
 import java.util.concurrent.TimeUnit
 
 data class SSHResult(
@@ -20,6 +22,14 @@ data class SSHResult(
 )
 
 object SSHExecutor {
+
+    init {
+        try {
+            Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME)
+            Security.insertProviderAt(BouncyCastleProvider(), 1)
+        } catch (_: Exception) {
+        }
+    }
 
     suspend fun executeCommand(
         server: ServerEntity,

@@ -39,23 +39,28 @@ class EditCommandDialog(
             .setNegativeButton(R.string.cancel, null)
             .create()
 
-        // 异步加载服务器列表填充 Spinner
+        var selectedServerId: String = existingCommand?.serverId ?: ""
+
+        // 异步加载服务器列表填充下拉菜单
         scope.launch {
             servers = App.database.serverDao().getAll()
             withContext(Dispatchers.Main) {
                 val serverNames = servers.map { "${it.name} (${it.host})" }
-                val spinnerAdapter = ArrayAdapter(
+                val dropdownAdapter = ArrayAdapter(
                     context,
-                    android.R.layout.simple_spinner_dropdown_item,
+                    android.R.layout.simple_dropdown_item_1line,
                     serverNames
                 )
-                binding.spinnerServer.adapter = spinnerAdapter
+                binding.actvServer.setAdapter(dropdownAdapter)
 
-                if (existingCommand != null) {
-                    val selectedIndex = servers.indexOfFirst { it.id == existingCommand.serverId }
-                    if (selectedIndex >= 0) {
-                        binding.spinnerServer.setSelection(selectedIndex)
-                    }
+                if (servers.isNotEmpty()) {
+                    val initialIndex = servers.indexOfFirst { it.id == selectedServerId }.let { if (it >= 0) it else 0 }
+                    binding.actvServer.setText(serverNames[initialIndex], false)
+                    selectedServerId = servers[initialIndex].id
+                }
+
+                binding.actvServer.setOnItemClickListener { _, _, position, _ ->
+                    selectedServerId = servers.getOrNull(position)?.id ?: ""
                 }
             }
         }
@@ -75,13 +80,12 @@ class EditCommandDialog(
                     binding.etCommandScript.error = "请输入执行脚本"
                     return@setOnClickListener
                 }
-                if (servers.isEmpty()) {
+                if (servers.isEmpty() || selectedServerId.isEmpty()) {
                     Toast.makeText(context, "请先添加至少一台服务器！", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
 
-                val selectedServerIndex = binding.spinnerServer.selectedItemPosition
-                val serverId = servers.getOrNull(selectedServerIndex)?.id ?: ""
+                val serverId = selectedServerId
 
                 scope.launch {
                     val commandDao = App.database.commandDao()
