@@ -10,7 +10,8 @@
         <item name="colorSecondaryContainer">@color/secondary_container</item>
         <item name="colorOnSecondaryContainer">@color/on_secondary_container</item>
 
-        <item name="android:statusBarColor">?attr/colorSurface</item>
+        <!-- 暗色模式下同样保证状态栏图标为纯白色 -->
+        <item name="android:statusBarColor">#0F172A</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>

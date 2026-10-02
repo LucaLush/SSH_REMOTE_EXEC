@@ -25,6 +25,10 @@ class SSHWidgetConfigureActivity : AppCompatActivity() {
         binding = ActivityWidgetConfigureBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        androidx.core.view.WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false
+        }
+
         appWidgetId = intent?.extras?.getInt(
             AppWidgetManager.EXTRA_APPWIDGET_ID,
             AppWidgetManager.INVALID_APPWIDGET_ID
