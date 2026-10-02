@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.schmizz.sshj.SSHClient
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier
+import net.schmizz.sshj.userauth.password.PasswordUtils
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.io.InputStream
 import java.security.Security
@@ -152,7 +153,7 @@ object SSHExecutor {
 
         // 使用 3 参数重载直接从内存字符串解析私钥，避免被当成磁盘文件路径导致 ENOENT (No such file or directory)
         val passwordFinder = if (!passphrase.isNullOrBlank()) {
-            net.schmizz.sshj.common.PasswordUtils.createOneOff(passphrase.toCharArray())
+            PasswordUtils.createOneOff(passphrase.toCharArray())
         } else {
             null
         }

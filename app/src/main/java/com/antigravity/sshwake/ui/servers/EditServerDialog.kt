@@ -12,6 +12,7 @@ import com.antigravity.sshwake.data.KeyEntity
 import com.antigravity.sshwake.data.KeyType
 import com.antigravity.sshwake.data.ServerEntity
 import com.antigravity.sshwake.databinding.DialogEditServerBinding
+import com.antigravity.sshwake.ui.keys.EditKeyDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -84,7 +85,7 @@ class EditServerDialog(
                 context = context,
                 scope = scope,
                 defaultType = targetType,
-                onSaved = { newKey ->
+                onSaved = { newKey: KeyEntity ->
                     scope.launch {
                         allKeys = App.database.keyDao().getAll()
                         withContext(Dispatchers.Main) {
