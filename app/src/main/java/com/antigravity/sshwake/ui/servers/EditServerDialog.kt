@@ -58,9 +58,11 @@ class EditServerDialog(
                 val index = currentFilteredKeys.indexOfFirst { it.id == selectedKeyId }.let { if (it >= 0) it else 0 }
                 binding.actvKeys.setText(keyNames[index], false)
                 selectedKeyId = currentFilteredKeys[index].id
+                binding.layoutKeys.helperText = null
             } else {
                 binding.actvKeys.setText("", false)
                 selectedKeyId = ""
+                binding.layoutKeys.helperText = "暂无${if (isKeyMode) "私钥" else "密码"}，点击右侧 ＋ 号添加"
             }
 
             binding.actvKeys.setOnItemClickListener { _, _, position, _ ->
@@ -68,8 +70,31 @@ class EditServerDialog(
             }
         }
 
-        binding.rgAuthType.setOnCheckedChangeListener { _, _ ->
+        binding.rgAuthType.setOnCheckedChangeListener { _, checkedId ->
             updateKeyDropdown()
+            if (checkedId == R.id.rb_auth_key && currentFilteredKeys.isEmpty()) {
+                Toast.makeText(context, "凭据库中暂无私钥，请点击右侧 ＋ 号添加", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        binding.btnQuickAddKey.setOnClickListener {
+            val isKeyMode = binding.rbAuthKey.isChecked
+            val targetType = if (isKeyMode) KeyType.PRIVATE_KEY else KeyType.PASSWORD
+            EditKeyDialog(
+                context = context,
+                scope = scope,
+                defaultType = targetType,
+                onSaved = { newKey ->
+                    scope.launch {
+                        allKeys = App.database.keyDao().getAll()
+                        withContext(Dispatchers.Main) {
+                            selectedKeyId = newKey.id
+                            updateKeyDropdown()
+                            Toast.makeText(context, "已创建并选中新凭证：${newKey.name}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            ).show()
         }
 
         val dialog = MaterialAlertDialogBuilder(context)

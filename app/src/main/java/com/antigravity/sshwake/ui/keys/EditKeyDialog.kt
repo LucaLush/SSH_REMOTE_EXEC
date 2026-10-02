@@ -21,7 +21,8 @@ class EditKeyDialog(
     private val context: Context,
     private val scope: CoroutineScope,
     private val existingKey: KeyEntity? = null,
-    private val onSaved: () -> Unit
+    private val defaultType: KeyType = KeyType.PASSWORD,
+    private val onSaved: (KeyEntity) -> Unit = {}
 ) {
     fun show() {
         val binding = DialogEditKeyBinding.inflate(LayoutInflater.from(context))
@@ -57,7 +58,13 @@ class EditKeyDialog(
                 binding.etPassphrase.setText(CryptoHelper.decrypt(existingKey.encryptedPassphrase))
             }
         } else {
-            updateUIForKeyType(false)
+            val isKey = (defaultType == KeyType.PRIVATE_KEY)
+            if (isKey) {
+                binding.rbTypePrivateKey.isChecked = true
+            } else {
+                binding.rbTypePassword.isChecked = true
+            }
+            updateUIForKeyType(isKey)
         }
 
         binding.rgKeyType.setOnCheckedChangeListener { _, checkedId ->
@@ -92,7 +99,7 @@ class EditKeyDialog(
 
                 scope.launch {
                     val keyDao = App.database.keyDao()
-                    if (existingKey == null) {
+                    val savedEntity = if (existingKey == null) {
                         val newKey = KeyEntity(
                             name = name,
                             type = keyType,
@@ -100,6 +107,7 @@ class EditKeyDialog(
                             encryptedPassphrase = encryptedPassphrase
                         )
                         keyDao.insert(newKey)
+                        newKey
                     } else {
                         val updated = existingKey.copy(
                             name = name,
@@ -108,11 +116,12 @@ class EditKeyDialog(
                             encryptedPassphrase = encryptedPassphrase
                         )
                         keyDao.update(updated)
+                        updated
                     }
 
                     withContext(Dispatchers.Main) {
                         dialog.dismiss()
-                        onSaved()
+                        onSaved(savedEntity)
                     }
                 }
             }
