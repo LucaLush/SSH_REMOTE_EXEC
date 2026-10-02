@@ -47,9 +47,9 @@ class EditKeyDialog(
             binding.etKeyName.setText(existingKey.name)
             val isKey = (existingKey.type == KeyType.PRIVATE_KEY)
             if (isKey) {
-                binding.rbType_private_key.isChecked = true
+                binding.rbTypePrivateKey.isChecked = true
             } else {
-                binding.rbType_password.isChecked = true
+                binding.rbTypePassword.isChecked = true
             }
             updateUIForKeyType(isKey)
             binding.etSecretContent.setText(CryptoHelper.decrypt(existingKey.encryptedSecret))
@@ -74,7 +74,7 @@ class EditKeyDialog(
             dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener {
                 val name = binding.etKeyName.text?.toString()?.trim() ?: ""
                 val secret = binding.etSecretContent.text?.toString()?.trim() ?: ""
-                val isPrivateKey = binding.rbType_private_key.isChecked
+                val isPrivateKey = binding.rbTypePrivateKey.isChecked
                 val passphrase = binding.etPassphrase.text?.toString()?.trim() ?: ""
 
                 if (name.isEmpty()) {

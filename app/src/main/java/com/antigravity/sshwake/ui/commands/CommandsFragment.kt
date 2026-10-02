@@ -123,11 +123,11 @@ class CommandsFragment : Fragment() {
         resultBinding.tvResultTitle.text = commandName
         if (result.isSuccess) {
             resultBinding.ivResultStatus.setImageResource(R.drawable.ic_check_circle)
-            resultBinding.ivResultStatus.setColorFilter(resources.getColor(R.color.status_success, null))
+            resultBinding.ivResultStatus.setColorFilter(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.status_success))
             resultBinding.tvResultSummary.text = "执行成功 (Exit: ${result.exitCode ?: 0})"
         } else {
             resultBinding.ivResultStatus.setImageResource(R.drawable.ic_error_outline)
-            resultBinding.ivResultStatus.setColorFilter(resources.getColor(R.color.status_error, null))
+            resultBinding.ivResultStatus.setColorFilter(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.status_error))
             resultBinding.tvResultSummary.text = "执行失败: ${result.errorMessage}"
         }
 

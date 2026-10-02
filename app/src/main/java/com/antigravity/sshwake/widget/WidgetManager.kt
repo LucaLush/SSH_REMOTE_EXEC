@@ -105,7 +105,11 @@ object WidgetManager {
                 putExtra("PENDING_COMMAND_ID", command.id)
             }
 
-            val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+            val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+            } else {
+                PendingIntent.FLAG_UPDATE_CURRENT
+            }
             val successCallback = PendingIntent.getBroadcast(
                 context,
                 command.id.hashCode(),
