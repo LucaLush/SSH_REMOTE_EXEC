@@ -1,6 +1,6 @@
 # SSH Remote Exec (SSH 桌面快捷助手)
 
-[English](README.md) | [简体中文](README_zh.md)
+[English](README.md) | [简体中文](README_zh.md) | [开发者架构文档 (doc/)](doc/README.md)
 
 一款轻量、极简且高安全性的 Android 原生远程脚本触发与桌面小部件工具（1x1 Widget）。
 

@@ -1,6 +1,6 @@
 # SSH Remote Exec
 
-[English](README.md) | [简体中文](README_zh.md)
+[English](README.md) | [简体中文](README_zh.md) | [Developer Docs (doc/)](doc/README.md)
 
 A lightweight, secure, and modern Android native app and 1x1 Home Screen Widget tool for triggering remote server scripts via SSH.
 
