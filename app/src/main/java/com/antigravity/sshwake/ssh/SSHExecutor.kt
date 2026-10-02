@@ -139,12 +139,18 @@ object SSHExecutor {
                     "$decryptedSecret\n"
                 }
 
-                // 核心修复：当无口令时必须调用单参数 loadKeys，规避 SSHJ 内部对 null String 调用 toCharArray() 崩溃
-                val keyProvider = if (!passphrase.isNullOrBlank()) {
-                    client.loadKeys(normalizedKey, passphrase.toCharArray())
+                // 核心修复：使用 3 参数重载直接从内存字符串解析私钥，避免被当成磁盘文件路径导致 ENOENT (No such file or directory)
+                val passwordFinder = if (!passphrase.isNullOrBlank()) {
+                    net.schmizz.sshj.common.PasswordUtils.createOneOff(passphrase.toCharArray())
                 } else {
-                    client.loadKeys(normalizedKey)
+                    null
                 }
+
+                val keyProvider = client.loadKeys(
+                    normalizedKey,
+                    null,
+                    passwordFinder
+                )
                 client.authPublickey(server.username, keyProvider)
             }
         }
