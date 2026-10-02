@@ -132,28 +132,36 @@ object SSHExecutor {
                     null
                 }
 
-                // 标准化私钥文本换行，防止结尾缺少换行导致 Base64 截断
-                val normalizedKey = if (decryptedSecret.endsWith("\n")) {
-                    decryptedSecret
-                } else {
-                    "$decryptedSecret\n"
-                }
-
-                // 核心修复：使用 3 参数重载直接从内存字符串解析私钥，避免被当成磁盘文件路径导致 ENOENT (No such file or directory)
-                val passwordFinder = if (!passphrase.isNullOrBlank()) {
-                    net.schmizz.sshj.common.PasswordUtils.createOneOff(passphrase.toCharArray())
-                } else {
-                    null
-                }
-
-                val keyProvider = client.loadKeys(
-                    normalizedKey,
-                    null,
-                    passwordFinder
-                )
+                val keyProvider = createKeyProvider(client, decryptedSecret, passphrase)
                 client.authPublickey(server.username, keyProvider)
             }
         }
+    }
+
+    fun createKeyProvider(
+        client: SSHClient,
+        privateKeyContent: String,
+        passphrase: String? = null
+    ): net.schmizz.sshj.userauth.keyprovider.KeyProvider {
+        // 标准化私钥文本换行，防止结尾缺少换行导致 Base64 截断
+        val normalizedKey = if (privateKeyContent.endsWith("\n")) {
+            privateKeyContent
+        } else {
+            "$privateKeyContent\n"
+        }
+
+        // 使用 3 参数重载直接从内存字符串解析私钥，避免被当成磁盘文件路径导致 ENOENT (No such file or directory)
+        val passwordFinder = if (!passphrase.isNullOrBlank()) {
+            net.schmizz.sshj.common.PasswordUtils.createOneOff(passphrase.toCharArray())
+        } else {
+            null
+        }
+
+        return client.loadKeys(
+            normalizedKey,
+            null,
+            passwordFinder
+        )
     }
 
     private fun readStream(stream: InputStream): String {
