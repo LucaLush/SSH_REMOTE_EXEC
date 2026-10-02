@@ -36,23 +36,33 @@ jobs:
       # 质量门禁：构建前执行自动化单元测试。任何测试不通过则立即中断流水线，坚决不构建发布缺陷 APK
       - name: Run Unit Tests
         id: unit_tests
-        run: ./gradlew testDebugUnitTest --no-daemon --stacktrace
+        run: |
+          set -o pipefail
+          ./gradlew testDebugUnitTest --no-daemon --stacktrace 2>&1 | tee gradle_test.log
 
       - name: Report Test Failure Details
         if: failure() && steps.unit_tests.outcome == 'failure'
         run: |
           python3 -c "
-          import glob, xml.etree.ElementTree as ET
+          import os, glob, xml.etree.ElementTree as ET
+          has_xml = False
           for f in glob.glob('app/build/test-results/**/*.xml', recursive=True):
               tree = ET.parse(f)
               for tc in tree.findall('.//testcase'):
                   for fail in tc.findall('failure'):
+                      has_xml = True
                       msg = fail.attrib.get('message', '').replace('\n', ' ')
                       lines = [line.strip() for line in (fail.text or '').split('\n') if line.strip()]
                       detail = lines[0] if lines else ''
                       cname = tc.attrib.get('classname', '')
                       mname = tc.attrib.get('name', '')
                       print(f'::error title=Failed: {cname}.{mname}::{msg} | {detail}')
+          if not has_xml and os.path.exists('gradle_test.log'):
+              with open('gradle_test.log') as f:
+                  lines = [l.strip() for l in f.readlines() if l.strip()]
+              errs = [l for l in lines if 'e: ' in l or 'FAILED' in l or 'Exception' in l or 'Caused by' in l]
+              snippet = ' ; '.join(errs[-8:] if errs else lines[-12:])
+              print(f'::error title=Gradle Build Error::{snippet[:1000]}')
           "
 
       # 测试报告归档（无论成功失败均归档，方便在线查看详情）
