@@ -54,6 +54,15 @@
             </LinearLayout>
 
             <ImageButton
+                android:id="@+id/btn_copy_command"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="复制命令"
+                android:src="@drawable/ic_copy"
+                app:tint="@color/text_secondary" />
+
+            <ImageButton
                 android:id="@+id/btn_edit_command"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
@@ -81,6 +90,7 @@
             android:background="@drawable/bg_code_snippet"
             android:fontFamily="monospace"
             android:padding="12dp"
+            android:textIsSelectable="true"
             android:textColor="#38BDF8"
             android:textSize="13sp" />
 

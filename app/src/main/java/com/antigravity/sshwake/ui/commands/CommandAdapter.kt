@@ -26,6 +26,18 @@ class CommandAdapter(
             }
             binding.tvCommandScript.text = item.command.command
 
+            val copyCommand = {
+                val clipboard = binding.root.context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clip = android.content.ClipData.newPlainText("SSH Command", item.command.command)
+                clipboard.setPrimaryClip(clip)
+                android.widget.Toast.makeText(binding.root.context, "已复制指令：${item.command.command}", android.widget.Toast.LENGTH_SHORT).show()
+                true
+            }
+
+            binding.btnCopyCommand.setOnClickListener { copyCommand() }
+            binding.root.setOnLongClickListener { copyCommand() }
+            binding.tvCommandScript.setOnLongClickListener { copyCommand() }
+
             binding.btnRunCommand.setOnClickListener { onRunClick(item) }
             binding.btnPinToDesktop.setOnClickListener { onPinClick(item) }
             binding.btnEditCommand.setOnClickListener { onEditClick(item) }

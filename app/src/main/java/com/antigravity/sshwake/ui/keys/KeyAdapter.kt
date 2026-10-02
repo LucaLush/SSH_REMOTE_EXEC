@@ -26,6 +26,14 @@ class KeyAdapter(
             val dateStr = dateFormat.format(Date(key.createdAt))
             binding.tvKeyType.text = "$typeStr • 创建于 $dateStr"
 
+            binding.root.setOnLongClickListener {
+                val clipboard = binding.root.context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clip = android.content.ClipData.newPlainText("Key Name", key.name)
+                clipboard.setPrimaryClip(clip)
+                android.widget.Toast.makeText(binding.root.context, "已复制凭据名称：${key.name}", android.widget.Toast.LENGTH_SHORT).show()
+                true
+            }
+
             binding.btnEditKey.setOnClickListener { onEditClick(key) }
             binding.btnDeleteKey.setOnClickListener { onDeleteClick(key) }
         }

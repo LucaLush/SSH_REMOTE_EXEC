@@ -27,6 +27,14 @@ class ServerAdapter(
                 binding.chipAuthType.text = binding.root.context.getString(R.string.auth_password)
             }
 
+            binding.root.setOnLongClickListener {
+                val clipboard = binding.root.context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clip = android.content.ClipData.newPlainText("Server Endpoint", "${server.username}@${server.host}:${server.port}")
+                clipboard.setPrimaryClip(clip)
+                android.widget.Toast.makeText(binding.root.context, "已复制服务器地址：${server.host}", android.widget.Toast.LENGTH_SHORT).show()
+                true
+            }
+
             binding.btnTestConnection.setOnClickListener { onTestClick(server) }
             binding.btnEditServer.setOnClickListener { onEditClick(server) }
             binding.btnDeleteServer.setOnClickListener { onDeleteClick(server) }
