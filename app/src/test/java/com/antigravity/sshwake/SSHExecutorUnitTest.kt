@@ -60,7 +60,7 @@ class SSHExecutorUnitTest {
             passphrase = null
         )
         assertNotNull("应该成功解析纯文本内存私钥", keyProvider)
-        assertNotNull("KeyProvider 应该包含有效的 PrivateKey 对象", keyProvider.privateKey)
+        assertNotNull("KeyProvider 应该包含有效的 PrivateKey 对象", keyProvider.getPrivate())
     }
 
     @Test
@@ -83,7 +83,7 @@ class SSHExecutorUnitTest {
             passphrase = "secret123"
         )
         assertNotNull("输入正确口令后应该成功解密并解析私钥", keyProvider)
-        assertNotNull("解密后的 KeyProvider 应该包含有效的 PrivateKey 对象", keyProvider.privateKey)
+        assertNotNull("解密后的 KeyProvider 应该包含有效的 PrivateKey 对象", keyProvider.getPrivate())
     }
 
     @Test(expected = Exception::class)
