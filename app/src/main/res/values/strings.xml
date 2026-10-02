@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SSH Remote Exec</string>
+    <string name="widget_name">SSH 快捷命令</string>
+    <string name="widget_description">桌面一键触发远程服务器 SSH 命令与唤醒脚本</string>
+
+    <!-- Navigation Tabs -->
+    <string name="nav_commands">命令</string>
+    <string name="nav_servers">服务器</string>
+    <string name="nav_keys">密钥凭证</string>
+
+    <!-- Commands Screen -->
+    <string name="title_commands">快捷命令列表</string>
+    <string name="btn_add_command">新建命令</string>
+    <string name="empty_commands">暂无命令，请先添加服务器与密钥后创建命令</string>
+    <string name="action_run">执行</string>
+    <string name="action_pin_widget">添加到桌面</string>
+    <string name="action_edit">编辑</string>
+    <string name="action_delete">删除</string>
+    <string name="confirm_delete_command">确定要删除此命令吗？</string>
+
+    <!-- Servers Screen -->
+    <string name="title_servers">远程服务器管理</string>
+    <string name="btn_add_server">添加服务器</string>
+    <string name="empty_servers">暂无服务器，请点击右上角或下方按钮添加</string>
+    <string name="btn_test_connection">测试连接</string>
+    <string name="testing_connection">正在测试连接...</string>
+    <string name="connection_success">连接成功！</string>
+    <string name="connection_failed">连接失败：%1$s</string>
+    <string name="confirm_delete_server">删除此服务器将同时清除关联命令，确定吗？</string>
+
+    <!-- Keys Screen -->
+    <string name="title_keys">密钥与凭证管理</string>
+    <string name="btn_add_key">添加凭证</string>
+    <string name="empty_keys">暂无凭据，支持密码与 Ed25519/RSA 私钥</string>
+    <string name="confirm_delete_key">确定删除该凭证？已关联的服务器可能无法认证！</string>
+
+    <!-- Dialogs & Forms -->
+    <string name="save">保存</string>
+    <string name="cancel">取消</string>
+    <string name="name">名称</string>
+    <string name="host">主机 IP / 域名</string>
+    <string name="port">端口号 (默认 22)</string>
+    <string name="username">用户名 (如 root)</string>
+    <string name="auth_type">认证类型</string>
+    <string name="auth_password">密码认证</string>
+    <string name="auth_key">私钥认证</string>
+    <string name="select_credential">选择凭证</string>
+    <string name="command_content">执行命令 / 脚本</string>
+    <string name="timeout_seconds">超时时间 (秒)</string>
+
+    <!-- Result Dialog -->
+    <string name="dialog_result_title">执行结果</string>
+    <string name="dialog_result_output">控制台回传：</string>
+    <string name="btn_close">关闭</string>
+
+    <!-- Widget Configure -->
+    <string name="configure_widget_title">选择要绑定到桌面的命令</string>
+    <string name="pinned_to_desktop">已发送添加到桌面请求</string>
+</resources>

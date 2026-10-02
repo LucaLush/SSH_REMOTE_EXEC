@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Brand Colors -->
+    <color name="primary">#006494</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="primary_container">#CCE5FF</color>
+    <color name="on_primary_container">#001D31</color>
+
+    <!-- Secondary Accent -->
+    <color name="secondary">#00A896</color>
+    <color name="on_secondary">#FFFFFF</color>
+    <color name="secondary_container">#A3EADE</color>
+    <color name="on_secondary_container">#00201C</color>
+
+    <!-- Status Colors -->
+    <color name="status_success">#2E7D32</color>
+    <color name="status_error">#C62828</color>
+    <color name="status_warning">#EF6C00</color>
+    <color name="status_running">#0288D1</color>
+
+    <!-- Neutral & Backgrounds -->
+    <color name="background">#F8F9FA</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_variant">#ECEFF1</color>
+    <color name="text_primary">#1C1B1F</color>
+    <color name="text_secondary">#607D8B</color>
+    <color name="divider">#E0E0E0</color>
+
+    <!-- Widget Specific -->
+    <color name="widget_default_bg">#1E293B</color>
+    <color name="widget_running_bg">#0284C7</color>
+    <color name="widget_success_bg">#16A34A</color>
+    <color name="widget_error_bg">#DC2626</color>
+</resources>

@@ -1,0 +1,123 @@
+package com.antigravity.sshwake.ui.keys
+
+import android.app.Dialog
+import android.content.Context
+import android.text.InputType
+import android.view.LayoutInflater
+import android.view.View
+import com.antigravity.sshwake.App
+import com.antigravity.sshwake.R
+import com.antigravity.sshwake.data.KeyEntity
+import com.antigravity.sshwake.data.KeyType
+import com.antigravity.sshwake.databinding.DialogEditKeyBinding
+import com.antigravity.sshwake.security.CryptoHelper
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+class EditKeyDialog(
+    private val context: Context,
+    private val scope: CoroutineScope,
+    private val existingKey: KeyEntity? = null,
+    private val onSaved: () -> Unit
+) {
+    fun show() {
+        val binding = DialogEditKeyBinding.inflate(LayoutInflater.from(context))
+
+        fun updateUIForKeyType(isKey: Boolean) {
+            if (isKey) {
+                binding.layoutSecret.hint = "私钥内容 (-----BEGIN OPENSSH PRIVATE KEY-----)"
+                binding.layoutPassphrase.visibility = View.VISIBLE
+                binding.etSecretContent.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+                binding.etSecretContent.minLines = 4
+                binding.etSecretContent.maxLines = 10
+            } else {
+                binding.layoutSecret.hint = "密码明文"
+                binding.layoutPassphrase.visibility = View.GONE
+                binding.etSecretContent.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                binding.etSecretContent.minLines = 1
+                binding.etSecretContent.maxLines = 1
+            }
+        }
+
+        if (existingKey != null) {
+            binding.tvDialogTitle.text = "编辑凭证"
+            binding.etKeyName.setText(existingKey.name)
+            val isKey = (existingKey.type == KeyType.PRIVATE_KEY)
+            if (isKey) {
+                binding.rbType_private_key.isChecked = true
+            } else {
+                binding.rbType_password.isChecked = true
+            }
+            updateUIForKeyType(isKey)
+            binding.etSecretContent.setText(CryptoHelper.decrypt(existingKey.encryptedSecret))
+            if (isKey && existingKey.encryptedPassphrase.isNotBlank()) {
+                binding.etPassphrase.setText(CryptoHelper.decrypt(existingKey.encryptedPassphrase))
+            }
+        } else {
+            updateUIForKeyType(false)
+        }
+
+        binding.rgKeyType.setOnCheckedChangeListener { _, checkedId ->
+            updateUIForKeyType(checkedId == R.id.rb_type_private_key)
+        }
+
+        val dialog = MaterialAlertDialogBuilder(context)
+            .setView(binding.root)
+            .setPositiveButton(R.string.save, null)
+            .setNegativeButton(R.string.cancel, null)
+            .create()
+
+        dialog.setOnShowListener {
+            dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener {
+                val name = binding.etKeyName.text?.toString()?.trim() ?: ""
+                val secret = binding.etSecretContent.text?.toString()?.trim() ?: ""
+                val isPrivateKey = binding.rbType_private_key.isChecked
+                val passphrase = binding.etPassphrase.text?.toString()?.trim() ?: ""
+
+                if (name.isEmpty()) {
+                    binding.etKeyName.error = "请输入凭据名称"
+                    return@setOnClickListener
+                }
+                if (secret.isEmpty()) {
+                    binding.etSecretContent.error = "请输入密码或私钥内容"
+                    return@setOnClickListener
+                }
+
+                val encryptedSecret = CryptoHelper.encrypt(secret)
+                val encryptedPassphrase = if (passphrase.isNotEmpty()) CryptoHelper.encrypt(passphrase) else ""
+                val keyType = if (isPrivateKey) KeyType.PRIVATE_KEY else KeyType.PASSWORD
+
+                scope.launch {
+                    val keyDao = App.database.keyDao()
+                    if (existingKey == null) {
+                        val newKey = KeyEntity(
+                            name = name,
+                            type = keyType,
+                            encryptedSecret = encryptedSecret,
+                            encryptedPassphrase = encryptedPassphrase
+                        )
+                        keyDao.insert(newKey)
+                    } else {
+                        val updated = existingKey.copy(
+                            name = name,
+                            type = keyType,
+                            encryptedSecret = encryptedSecret,
+                            encryptedPassphrase = encryptedPassphrase
+                        )
+                        keyDao.update(updated)
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        dialog.dismiss()
+                        onSaved()
+                    }
+                }
+            }
+        }
+
+        dialog.show()
+    }
+}
