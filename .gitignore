@@ -9,6 +9,7 @@
 .cxx
 *.apk
 *.aab
+release.jks
 *.jks
-*.keystore
 keystore_base64.txt
+!keystore/debug.keystore

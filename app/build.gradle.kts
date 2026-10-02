@@ -4,6 +4,8 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+val ciBuildNumber = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
+
 android {
     namespace = "com.antigravity.sshwake"
     compileSdk = 34
@@ -12,13 +14,24 @@ android {
         applicationId = "com.antigravity.sshwake"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        // 云端 CI 自动递增版本号，确保每次构建都是新版本，支持系统顺畅覆盖升级
+        versionCode = ciBuildNumber
+        versionName = "1.0.$ciBuildNumber"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
+        // 项目固定的开发与共享证书，确保无论在任何一台云端虚拟机还是本地构建，签名均 100% 绝对一致，杜绝“签名不一致导致无法更新”
+        create("shared") {
+            val keystoreFile = rootProject.file("keystore/debug.keystore")
+            if (keystoreFile.exists()) {
+                storeFile = keystoreFile
+                storePassword = "android"
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+            }
+        }
         create("release") {
             val keystoreFile = file("release.jks")
             if (keystoreFile.exists()) {
@@ -38,14 +51,17 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            val keystoreFile = file("release.jks")
-            if (keystoreFile.exists()) {
+            val releaseKeystore = file("release.jks")
+            if (releaseKeystore.exists()) {
                 signingConfig = signingConfigs.getByName("release")
+            } else {
+                signingConfig = signingConfigs.getByName("shared")
             }
         }
         debug {
             isMinifyEnabled = false
-            applicationIdSuffix = ".debug"
+            // 统一签名，确保每次覆盖安装均能成功
+            signingConfig = signingConfigs.getByName("shared")
         }
     }
 
