@@ -112,9 +112,10 @@ class SSHWidgetProvider : AppWidgetProvider() {
                     }
                 }
 
-                // 4. 延迟 3 秒复原小部件状态
+                // 4. 成功后短暂展示反馈（800毫秒瞬发复原），失败展示 2 秒让用户看清
                 if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
-                    delay(3000)
+                    val resetDelay = if (result.isSuccess) 800L else 2000L
+                    delay(resetDelay)
                     WidgetManager.updateWidgetView(context, appWidgetManager, appWidgetId, command, WidgetState.IDLE)
                 }
             }
