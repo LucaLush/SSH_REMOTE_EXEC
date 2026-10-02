@@ -123,7 +123,7 @@ object SSHExecutor {
 
         when (server.authType) {
             AuthType.PASSWORD -> {
-                client.authPassword(server.username, decryptedSecret)
+                client.authPassword(server.username, decryptedSecret.toCharArray())
             }
             AuthType.KEY -> {
                 val passphrase = if (key.encryptedPassphrase.isNotBlank()) {
@@ -132,17 +132,19 @@ object SSHExecutor {
                     null
                 }
 
-                // 标准化私钥文本换行
+                // 标准化私钥文本换行，防止结尾缺少换行导致 Base64 截断
                 val normalizedKey = if (decryptedSecret.endsWith("\n")) {
                     decryptedSecret
                 } else {
                     "$decryptedSecret\n"
                 }
 
-                val keyProvider = client.loadKeys(
-                    normalizedKey,
-                    passphrase
-                )
+                // 核心修复：当无口令时必须调用单参数 loadKeys，规避 SSHJ 内部对 null String 调用 toCharArray() 崩溃
+                val keyProvider = if (!passphrase.isNullOrBlank()) {
+                    client.loadKeys(normalizedKey, passphrase.toCharArray())
+                } else {
+                    client.loadKeys(normalizedKey)
+                }
                 client.authPublickey(server.username, keyProvider)
             }
         }
