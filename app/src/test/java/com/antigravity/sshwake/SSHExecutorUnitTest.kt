@@ -88,33 +88,33 @@ class SSHExecutorUnitTest {
 
     @Test(expected = Exception::class)
     fun testLoadEncryptedKeyWithWrongPassphraseFails() {
-        SSHExecutor.createKeyProvider(
+        val provider = SSHExecutor.createKeyProvider(
             client = client,
             privateKeyContent = TEST_ED25519_KEY_ENCRYPTED,
             passphrase = "wrong_password_xyz"
         )
+        // 关键：SSHJ 的 FileKeyProvider 是延迟读取的，必须调用 getPrivate() 才会真正触发解密
+        provider.getPrivate()
     }
 
     @Test
     fun testPassphraseNullOrBlankDoesNotThrowNPE() {
         // 验证不会因 passphrase 为 null 或空白抛出 toCharArray() NPE
-        try {
-            SSHExecutor.createKeyProvider(
-                client = client,
-                privateKeyContent = TEST_ED25519_KEY,
-                passphrase = ""
-            )
-        } catch (e: NullPointerException) {
-            org.junit.Assert.fail("不应该抛出 NullPointerException: ${e.message}")
-        }
+        val keyProvider = SSHExecutor.createKeyProvider(
+            client = client,
+            privateKeyContent = TEST_ED25519_KEY,
+            passphrase = ""
+        )
+        assertNotNull("未加密密钥即使传入空口令也应正常读取", keyProvider.getPrivate())
     }
 
     @Test(expected = Exception::class)
     fun testMalformedKeyThrowsException() {
-        SSHExecutor.createKeyProvider(
+        val provider = SSHExecutor.createKeyProvider(
             client = client,
             privateKeyContent = "NOT_A_VALID_KEY_CONTENT",
             passphrase = null
         )
+        provider.getPrivate()
     }
 }

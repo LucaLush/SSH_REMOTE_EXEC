@@ -35,7 +35,13 @@ jobs:
 
       # 质量门禁：构建前执行自动化单元测试。任何测试不通过则立即中断流水线，坚决不构建发布缺陷 APK
       - name: Run Unit Tests
-        run: ./gradlew testDebugUnitTest --no-daemon --stacktrace
+        run: |
+          ./gradlew testDebugUnitTest --no-daemon --stacktrace || {
+            echo "::error::Unit Tests Failed!"
+            echo "=== Printing Test XML Results ==="
+            find app/build/test-results -name "*.xml" -exec cat {} +
+            exit 1
+          }
 
       # 测试报告归档（无论成功失败均归档，方便在线查看详情）
       - name: Upload Test Report
