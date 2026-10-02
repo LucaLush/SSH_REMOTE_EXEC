@@ -35,13 +35,25 @@ jobs:
 
       # 质量门禁：构建前执行自动化单元测试。任何测试不通过则立即中断流水线，坚决不构建发布缺陷 APK
       - name: Run Unit Tests
+        id: unit_tests
+        run: ./gradlew testDebugUnitTest --no-daemon --stacktrace
+
+      - name: Report Test Failure Details
+        if: failure() && steps.unit_tests.outcome == 'failure'
         run: |
-          ./gradlew testDebugUnitTest --no-daemon --stacktrace || {
-            echo "::error::Unit Tests Failed!"
-            echo "=== Printing Test XML Results ==="
-            find app/build/test-results -name "*.xml" -exec cat {} +
-            exit 1
-          }
+          python3 -c "
+          import glob, xml.etree.ElementTree as ET
+          for f in glob.glob('app/build/test-results/**/*.xml', recursive=True):
+              tree = ET.parse(f)
+              for tc in tree.findall('.//testcase'):
+                  for fail in tc.findall('failure'):
+                      msg = fail.attrib.get('message', '').replace('\n', ' ')
+                      lines = [line.strip() for line in (fail.text or '').split('\n') if line.strip()]
+                      detail = lines[0] if lines else ''
+                      cname = tc.attrib.get('classname', '')
+                      mname = tc.attrib.get('name', '')
+                      print(f'::error title=Failed: {cname}.{mname}::{msg} | {detail}')
+          "
 
       # 测试报告归档（无论成功失败均归档，方便在线查看详情）
       - name: Upload Test Report
