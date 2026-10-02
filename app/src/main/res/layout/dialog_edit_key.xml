@@ -37,7 +37,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="凭据种类"
+            android:text="@string/credential_type"
             android:textColor="@color/text_secondary"
             android:textSize="12sp" />
 
@@ -53,14 +53,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checked="true"
-                android:text="SSH 密码" />
+                android:text="@string/key_type_password" />
 
             <RadioButton
                 android:id="@+id/rb_type_private_key"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:text="私钥 (Ed25519/RSA)" />
+                android:text="@string/key_type_private_key" />
         </RadioGroup>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -68,7 +68,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="密码明文"
+            android:hint="@string/hint_password_secret"
             app:boxBackgroundMode="outline"
             app:passwordToggleEnabled="true">
 
@@ -85,7 +85,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="私钥口令 Passphrase (若有则填，无则留空)"
+            android:hint="@string/hint_passphrase"
             android:visibility="gone"
             app:boxBackgroundMode="outline"
             app:passwordToggleEnabled="true">

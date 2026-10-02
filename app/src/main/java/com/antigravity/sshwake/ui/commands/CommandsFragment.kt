@@ -54,7 +54,7 @@ class CommandsFragment : Fragment() {
             },
             onEditClick = { item ->
                 EditCommandDialog(requireContext(), viewLifecycleOwner.lifecycleScope, item.command) {
-                    Toast.makeText(requireContext(), "命令已更新", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), R.string.toast_command_updated, Toast.LENGTH_SHORT).show()
                 }.show()
             },
             onDeleteClick = { item -> confirmDelete(item) }
@@ -69,11 +69,11 @@ class CommandsFragment : Fragment() {
             viewLifecycleOwner.lifecycleScope.launch {
                 val servers = App.database.serverDao().getAll()
                 if (servers.isEmpty()) {
-                    Toast.makeText(requireContext(), "请先添加至少一台服务器！", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), R.string.toast_need_server_first, Toast.LENGTH_SHORT).show()
                     return@launch
                 }
                 EditCommandDialog(requireContext(), viewLifecycleOwner.lifecycleScope) {
-                    Toast.makeText(requireContext(), "命令已创建", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), R.string.toast_command_created, Toast.LENGTH_SHORT).show()
                 }.show()
             }
         }
@@ -95,13 +95,13 @@ class CommandsFragment : Fragment() {
     private fun runCommand(item: CommandWithServer) {
         val server = item.server
         if (server == null) {
-            Toast.makeText(requireContext(), "此命令未关联可用服务器", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), R.string.widget_server_deleted, Toast.LENGTH_SHORT).show()
             return
         }
 
         val progressDialog = MaterialAlertDialogBuilder(requireContext())
-            .setTitle("正在执行...")
-            .setMessage("正在连接 ${server.host}:${server.port} 并执行命令...")
+            .setTitle(R.string.action_run)
+            .setMessage(getString(R.string.test_dialog_connecting))
             .setCancelable(false)
             .show()
 
@@ -124,11 +124,11 @@ class CommandsFragment : Fragment() {
         if (result.isSuccess) {
             resultBinding.ivResultStatus.setImageResource(R.drawable.ic_check_circle)
             resultBinding.ivResultStatus.setColorFilter(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.status_success))
-            resultBinding.tvResultSummary.text = "执行成功 (Exit: ${result.exitCode ?: 0})"
+            resultBinding.tvResultSummary.text = "Exit Code: ${result.exitCode ?: 0}"
         } else {
             resultBinding.ivResultStatus.setImageResource(R.drawable.ic_error_outline)
             resultBinding.ivResultStatus.setColorFilter(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.status_error))
-            resultBinding.tvResultSummary.text = "执行失败: ${result.errorMessage}"
+            resultBinding.tvResultSummary.text = result.errorMessage ?: "Failed"
         }
 
         resultBinding.tvResultOutput.text = result.output
@@ -141,7 +141,7 @@ class CommandsFragment : Fragment() {
             val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("SSH Output", result.output)
             clipboard.setPrimaryClip(clip)
-            Toast.makeText(requireContext(), "回显内容已复制到剪贴板", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), R.string.toast_copied_output, Toast.LENGTH_SHORT).show()
         }
 
         resultBinding.btnCloseDialog.setOnClickListener {
@@ -158,7 +158,7 @@ class CommandsFragment : Fragment() {
             .setPositiveButton(R.string.action_delete) { _, _ ->
                 viewLifecycleOwner.lifecycleScope.launch {
                     App.database.commandDao().delete(item.command)
-                    Toast.makeText(requireContext(), "已删除命令", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), R.string.toast_command_deleted, Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton(R.string.cancel, null)

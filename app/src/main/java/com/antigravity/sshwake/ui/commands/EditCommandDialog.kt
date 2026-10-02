@@ -27,7 +27,7 @@ class EditCommandDialog(
         var servers = listOf<ServerEntity>()
 
         if (existingCommand != null) {
-            binding.tvDialogTitle.text = "编辑命令"
+            binding.tvDialogTitle.text = context.getString(R.string.edit_command)
             binding.etCommandName.setText(existingCommand.name)
             binding.etCommandScript.setText(existingCommand.command)
             binding.etTimeout.setText(existingCommand.timeoutSeconds.toString())
@@ -73,15 +73,15 @@ class EditCommandDialog(
                 val timeout = timeoutStr.toIntOrNull() ?: 8
 
                 if (name.isEmpty()) {
-                    binding.etCommandName.error = "请输入命令名称"
+                    binding.etCommandName.error = context.getString(R.string.err_enter_command_name)
                     return@setOnClickListener
                 }
                 if (script.isEmpty()) {
-                    binding.etCommandScript.error = "请输入执行脚本"
+                    binding.etCommandScript.error = context.getString(R.string.err_enter_command_script)
                     return@setOnClickListener
                 }
                 if (servers.isEmpty() || selectedServerId.isEmpty()) {
-                    Toast.makeText(context, "请先添加至少一台服务器！", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.toast_need_server_first), Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
 

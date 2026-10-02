@@ -30,7 +30,7 @@ class EditServerDialog(
         var allKeys = listOf<KeyEntity>()
 
         if (existingServer != null) {
-            binding.tvDialogTitle.text = "编辑服务器"
+            binding.tvDialogTitle.text = context.getString(R.string.edit_server)
             binding.etServerName.setText(existingServer.name)
             binding.etHost.setText(existingServer.host)
             binding.etPort.setText(existingServer.port.toString())
@@ -51,7 +51,8 @@ class EditServerDialog(
             currentFilteredKeys = allKeys.filter {
                 if (isKeyMode) it.type == KeyType.PRIVATE_KEY else it.type == KeyType.PASSWORD
             }
-            val keyNames = currentFilteredKeys.map { "${it.name} (${if (it.type == KeyType.PRIVATE_KEY) "私钥" else "密码"})" }
+            val typeSuffix = if (isKeyMode) context.getString(R.string.auth_key) else context.getString(R.string.auth_password)
+            val keyNames = currentFilteredKeys.map { "${it.name} ($typeSuffix)" }
             val adapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, keyNames)
             binding.actvKeys.setAdapter(adapter)
 
@@ -63,7 +64,7 @@ class EditServerDialog(
             } else {
                 binding.actvKeys.setText("", false)
                 selectedKeyId = ""
-                binding.layoutKeys.helperText = "暂无${if (isKeyMode) "私钥" else "密码"}，点击右侧 ＋ 号添加"
+                binding.layoutKeys.helperText = context.getString(R.string.helper_no_credential, typeSuffix)
             }
 
             binding.actvKeys.setOnItemClickListener { _, _, position, _ ->
@@ -74,7 +75,7 @@ class EditServerDialog(
         binding.rgAuthType.setOnCheckedChangeListener { _, checkedId ->
             updateKeyDropdown()
             if (checkedId == R.id.rb_auth_key && currentFilteredKeys.isEmpty()) {
-                Toast.makeText(context, "凭据库中暂无私钥，请点击右侧 ＋ 号添加", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.toast_no_keys_in_db), Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -91,7 +92,7 @@ class EditServerDialog(
                         withContext(Dispatchers.Main) {
                             selectedKeyId = newKey.id
                             updateKeyDropdown()
-                            Toast.makeText(context, "已创建并选中新凭证：${newKey.name}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.toast_created_and_selected, newKey.name), Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -121,21 +122,22 @@ class EditServerDialog(
                 val authType = if (binding.rbAuthKey.isChecked) AuthType.KEY else AuthType.PASSWORD
 
                 if (name.isEmpty()) {
-                    binding.etServerName.error = "请输入服务器名称"
+                    binding.etServerName.error = context.getString(R.string.err_enter_server_name)
                     return@setOnClickListener
                 }
                 if (host.isEmpty()) {
-                    binding.etHost.error = "请输入主机 IP 或域名"
+                    binding.etHost.error = context.getString(R.string.err_enter_host)
                     return@setOnClickListener
                 }
                 if (username.isEmpty()) {
-                    binding.etUsername.error = "请输入用户名"
+                    binding.etUsername.error = context.getString(R.string.err_enter_username)
                     return@setOnClickListener
                 }
 
                 val isKeyMode = (authType == AuthType.KEY)
                 if (currentFilteredKeys.isEmpty() || selectedKeyId.isEmpty()) {
-                    Toast.makeText(context, "请先在【凭证】页添加对应的${if (isKeyMode) "私钥" else "密码"}", Toast.LENGTH_SHORT).show()
+                    val typeName = if (isKeyMode) context.getString(R.string.auth_key) else context.getString(R.string.auth_password)
+                    Toast.makeText(context, context.getString(R.string.toast_need_credential, typeName), Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
 

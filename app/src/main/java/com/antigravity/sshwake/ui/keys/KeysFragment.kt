@@ -41,7 +41,7 @@ class KeysFragment : Fragment() {
         adapter = KeyAdapter(
             onEditClick = { key ->
                 EditKeyDialog(requireContext(), viewLifecycleOwner.lifecycleScope, key) {
-                    Toast.makeText(requireContext(), "凭据已更新", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), R.string.toast_key_updated, Toast.LENGTH_SHORT).show()
                 }.show()
             },
             onDeleteClick = { key -> confirmDelete(key) }
@@ -54,7 +54,7 @@ class KeysFragment : Fragment() {
     private fun setupListeners() {
         binding.fabAddKey.setOnClickListener {
             EditKeyDialog(requireContext(), viewLifecycleOwner.lifecycleScope) {
-                Toast.makeText(requireContext(), "凭据已添加", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), R.string.toast_key_added, Toast.LENGTH_SHORT).show()
             }.show()
         }
     }
@@ -79,7 +79,7 @@ class KeysFragment : Fragment() {
             .setPositiveButton(R.string.action_delete) { _, _ ->
                 viewLifecycleOwner.lifecycleScope.launch {
                     App.database.keyDao().delete(key)
-                    Toast.makeText(requireContext(), "已删除凭证", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), R.string.toast_key_deleted, Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton(R.string.cancel, null)

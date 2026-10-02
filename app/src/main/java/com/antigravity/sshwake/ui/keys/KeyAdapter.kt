@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.antigravity.sshwake.R
 import com.antigravity.sshwake.data.KeyEntity
 import com.antigravity.sshwake.data.KeyType
 import com.antigravity.sshwake.databinding.ItemKeyBinding
@@ -21,16 +22,16 @@ class KeyAdapter(
 
     inner class ViewHolder(val binding: ItemKeyBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(key: KeyEntity) {
-            binding.tvKeyName.text = key.name
-            val typeStr = if (key.type == KeyType.PRIVATE_KEY) "OpenSSH 私钥" else "账号明文密码"
+            val context = binding.root.context
+            val typeStr = if (key.type == KeyType.PRIVATE_KEY) context.getString(R.string.key_type_key_desc) else context.getString(R.string.key_type_password_desc)
             val dateStr = dateFormat.format(Date(key.createdAt))
-            binding.tvKeyType.text = "$typeStr • 创建于 $dateStr"
+            binding.tvKeyType.text = "$typeStr • $dateStr"
 
             binding.root.setOnLongClickListener {
-                val clipboard = binding.root.context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                 val clip = android.content.ClipData.newPlainText("Key Name", key.name)
                 clipboard.setPrimaryClip(clip)
-                android.widget.Toast.makeText(binding.root.context, "已复制凭据名称：${key.name}", android.widget.Toast.LENGTH_SHORT).show()
+                android.widget.Toast.makeText(context, context.getString(R.string.toast_copied_key, key.name), android.widget.Toast.LENGTH_SHORT).show()
                 true
             }
 

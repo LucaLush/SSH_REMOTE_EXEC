@@ -1,100 +1,124 @@
-# SSH Remote Exec (SSH 桌面快捷助手)
+# SSH Remote Exec
 
-一款轻量、极简且高安全性的 Android 原生远程脚本触发与桌面小部件工具（1x1 Widget）。
+[English](README.md) | [简体中文](README_zh.md)
 
-用户可在桌面轻触小图标，静默通过 SSH 协议连接指定内网/外网服务器，毫秒级执行网络唤醒（Wake-on-LAN）、Docker 容器启停、服务重启或任意自动化运维命令。
+A lightweight, secure, and modern Android native app and 1x1 Home Screen Widget tool for triggering remote server scripts via SSH.
 
----
-
-## 一、 核心功能特色
-
-* **三层实体解耦管理**：
-  * **密钥与凭据库**：支持账号明文密码，以及以 `-----BEGIN OPENSSH PRIVATE KEY-----` 开头的纯文本私钥（支持现代 Ed25519、RSA、ECDSA 等），可配置私钥口令 Passphrase。
-  * **服务器管理**：配置主机 IP/域名、SSH 端口、登录用户名，绑定对应的凭证，支持在 App 内一键“测试连接”验证网络握手与鉴权。
-  * **命令管理**：定义执行脚本（如 `wol 00:11:22:33:44:55`、`docker restart my-service`）、自定义超时时间（默认 8s）、一键执行并弹出控制台回显、一键复制输出。
-* **独立桌面小组件 (AppWidget)**：
-  * **自由多实例绑定**：桌面可同时添加多个小部件，每个部件绑定不同服务器上的不同命令。
-  * **双向添加流程**：
-    1. **Launcher 添加**：在手机桌面长按添加小部件，自动唤起命令选择界面进行绑定。
-    2. **应用内一键添加**：在 App 命令列表点击“添加到桌面”，由系统自动 Pin 到手机主屏幕。
-  * **微动效与状态回显**：点击小部件后即时切换为“执行中”蓝色光环状态并弹出 Toast；成功时展示绿色圆勾，失败时展示红色感叹号，并在 3 秒后优雅重置为待命状态。
-* **硬件级高强度加密隔离**：
-  * 基于 Android Keystore 与 AES-256-GCM 硬件级加密，本地持久化所有密码及私钥密文，杜绝物理提取泄露风险。
-* **零后台常驻与极简权限**：
-  * 仅申请 `INTERNET` 与 `ACCESS_NETWORK_STATE` 两个基础权限，无任何常驻 Service，待机电量消耗为 **0%**。
+Trigger Wake-on-LAN (WoL), restart Docker containers, run deployment pipelines, or execute any automation command on your home lab or cloud servers with a single tap on your Android home screen.
 
 ---
 
-## 二、 GitHub Actions 云端全自动打包指南
+## 🌟 Key Features
 
-本项目已内置好完整可靠的 GitHub Actions CI/CD 流水线（`.github/workflows/build.yml`），无需在本地安装 GB 级的 Android Studio 或配置繁琐的 Java/Android SDK，推送至 GitHub 即可全自动编译。
-
-### 1. 自动构建 Debug APK
-1. 将当前项目初始化并推送到你的 GitHub 仓库：
-   ```bash
-   git init
-   git add .
-   git commit -m "feat: initial commit for ssh remote exec app"
-   git branch -M main
-   git remote add origin https://github.com/<你的用户名>/<你的仓库名>.git
-   git push -u origin main
-   ```
-2. 每次向 `main` 分支 `push` 代码时，GitHub Actions 会在 2~3 分钟内自动完成 JDK 17、Gradle 依赖缓存配置并打包 Debug APK。
-3. 打开 GitHub 仓库的 **Actions** 页面，点击最新的构建任务，在下方 **Artifacts** 区域即可直接下载 `SSHRemoteExec-Debug-APK.zip`，解压即为安装包。
+* **Three-Tier Decoupled Architecture**:
+  * **Credential Store**: Supports plaintext passwords and OpenSSH private keys (`Ed25519`, `RSA`, `ECDSA`, etc.) with optional passphrases.
+  * **Server Management**: Configure host IP/domain, SSH port, username, and bound credentials. Includes distinct non-intrusive authentication badges and in-app connection testing with real-time handshake diagnostics.
+  * **Command Management**: Define scripts, custom timeouts, and one-tap test execution with console feedback and clipboard copy shortcuts.
+* **Independent Home Screen Widgets (AppWidget)**:
+  * **Multi-Instance**: Place multiple 1x1 widgets on your launcher, each bound to distinct commands and servers.
+  * **Two-Way Setup**: Pin widgets directly from within the app or add them via your launcher's widget menu.
+  * **Micro-Animations & Status Feedback**: Visual running indicator (blue glow), success state (green checkmark with swift 800ms reset), and error state (red alert).
+* **Full Internationalization (i18n)**:
+  * Built-in English and Chinese (Simplified) support, automatically adapting to your system language.
+* **Hardware-Backed Cryptographic Security**:
+  * Utilizes Android Keystore with AES-256-GCM authenticated encryption for all stored credentials.
+* **Zero Standby Battery Drain**:
+  * Requests only `INTERNET` and `ACCESS_NETWORK_STATE` permissions. No background services or polling daemons.
 
 ---
 
-### 2. 自动构建并签名 Release APK（及自动发布 GitHub Release）
+## 🛠️ Local Linux Build Guide (Prerequisites & Commands)
 
-如果你希望打包带官方签名的正式版 Release APK，只需在 GitHub 仓库添加签名密钥：
+If you wish to compile the project locally on a Linux distribution (Ubuntu, Debian, or WSL), follow these steps:
 
-#### 第一步：生成签名证书（若已有可跳过）
-在终端中执行：
+### 1. Install System Dependencies (JDK 17, Curl, Unzip)
 ```bash
-keytool -genkey -v -keystore release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias wakekey
+sudo apt update
+sudo apt install -y openjdk-17-jdk curl unzip git
 ```
 
-#### 第二步：获取证书的 Base64 编码
+### 2. Download and Set Up Android SDK Command-line Tools
 ```bash
-base64 -w 0 release.jks > keystore_base64.txt
+# Create SDK directory
+mkdir -p ~/android-sdk/cmdline-tools
+
+# Download official Google Android Command-line Tools
+curl -o /tmp/cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+unzip -q /tmp/cmdline-tools.zip -d ~/android-sdk/cmdline-tools
+mv ~/android-sdk/cmdline-tools/cmdline-tools ~/android-sdk/cmdline-tools/latest
+rm -f /tmp/cmdline-tools.zip
+
+# Accept SDK licenses and install required platform & build-tools (API 34)
+yes | ~/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+~/android-sdk/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
 ```
 
-#### 第三步：配置 GitHub Secrets
-打开你的 GitHub 仓库，进入 **Settings** -> **Secrets and variables** -> **Actions** -> **New repository secret**，添加以下 4 个密钥：
-* `SIGNING_KEYSTORE_BASE64`：填入 `keystore_base64.txt` 中的整段文本。
-* `KEY_STORE_PASSWORD`：你生成证书时设置的密码。
-* `ALIAS`：`wakekey`
-* `KEY_PASSWORD`：别名密码（通常与密钥库密码一致）。
+### 3. Build & Run Tests
+Navigate to the project root directory:
+```bash
+# Set SDK location in local.properties
+echo "sdk.dir=$HOME/android-sdk" > local.properties
 
-#### 第四步：触发正式发布
-当你打上版本 Tag 并推送到 GitHub 时：
+# Run automated unit tests
+./gradlew testDebugUnitTest
+
+# Assemble Debug APK
+./gradlew assembleDebug
+```
+Output APK location: `app/build/outputs/apk/debug/app-debug.apk`.
+
+---
+
+## 🧹 How to Clean Up the Build Environment
+
+If you want to completely remove the build tools and reclaim disk space on your Linux machine:
+
+```bash
+# 1. Delete the installed Android SDK directory (~1.1 GB freed)
+rm -rf ~/android-sdk
+
+# 2. Remove the local SDK pointer file in the project
+rm -f local.properties
+
+# 3. (Optional) Clear Gradle build cache and daemons (~/.gradle)
+rm -rf ~/.gradle
+
+# 4. (Optional) Remove OpenJDK 17 if no longer needed
+sudo apt remove --purge -y openjdk-17-jdk
+sudo apt autoremove -y
+```
+
+---
+
+## 🚀 GitHub Actions Cloud CI/CD Guide (No Local Setup Required)
+
+This repository includes a ready-to-use GitHub Actions workflow (`.github/workflows/build.yml`) that automatically tests and packages the app on every push.
+
+### 1. Automated Debug Builds
+* Pushing to `main` triggers automated unit testing and builds `app-debug.apk`.
+* Download the compiled APK directly from the **Releases** section on the repository homepage or under **Actions** -> **Artifacts**.
+
+### 2. Automated Official Release Packaging
+Configure the following 4 secrets under **Settings** -> **Secrets and variables** -> **Actions**:
+* `SIGNING_KEYSTORE_BASE64`: Base64 string of your `release.jks`.
+* `KEY_STORE_PASSWORD`: Keystore password.
+* `ALIAS`: Key alias.
+* `KEY_PASSWORD`: Key password.
+
+Tag and push a release:
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
 ```
-云端流水线将自动编译 Release APK，完成签名和混淆压缩，并在 GitHub 的 **Releases** 页面自动创建一个发布版本并附带 APK 下载。
+GitHub Actions will automatically run tests, sign the APK, and publish an official GitHub Release.
 
 ---
 
-## 三、 本地手动编译（可选）
+## 🏛️ Tech Stack & Architecture
 
-若你本地已具备 JDK 17 环境，可在项目根目录下直接执行：
-```bash
-# 构建 Debug 版本
-./gradlew assembleDebug
-
-# 构建 Release 版本（需在 app/ 目录下放置 release.jks 或配置环境变量）
-./gradlew assembleRelease
-```
-产物位置：`app/build/outputs/apk/debug/app-debug.apk`。
-
----
-
-## 四、 核心技术栈与架构
-
-* **编程语言**：Kotlin 1.9 + 协程 (Coroutines)
-* **架构模式**：Material Design 3 + ViewBinding + Single Activity Architecture
-* **持久化数据库**：Jetpack Room 2.6 (KSP 代码生成)
-* **加密凭据**：Android Keystore + AES-256-GCM
-* **SSH 核心驱动**：`com.hierynomus:sshj:0.38.0` + BouncyCastle (`bcprov-jdk18on`)
-* **桌面小部件**：`AppWidgetProvider` + `RemoteViews` + `requestPinAppWidget`
+* **Language**: Kotlin 1.9 + Coroutines
+* **UI**: Material Design 3 + ViewBinding + Single Activity Architecture
+* **Persistence**: Jetpack Room 2.6 (KSP code generation)
+* **Encryption**: Android Keystore + AES-256-GCM
+* **SSH Engine**: `com.hierynomus:sshj:0.38.0` + BouncyCastle (`bcprov-jdk18on`)
+* **Widget Engine**: `AppWidgetProvider` + `RemoteViews` + `requestPinAppWidget`

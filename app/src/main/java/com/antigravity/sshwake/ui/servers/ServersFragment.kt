@@ -43,7 +43,7 @@ class ServersFragment : Fragment() {
             onTestClick = { server -> testServer(server) },
             onEditClick = { server ->
                 EditServerDialog(requireContext(), viewLifecycleOwner.lifecycleScope, server) {
-                    Toast.makeText(requireContext(), "服务器信息已更新", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), R.string.toast_server_updated, Toast.LENGTH_SHORT).show()
                 }.show()
             },
             onDeleteClick = { server -> confirmDelete(server) }
@@ -58,11 +58,11 @@ class ServersFragment : Fragment() {
             viewLifecycleOwner.lifecycleScope.launch {
                 val keys = App.database.keyDao().getAll()
                 if (keys.isEmpty()) {
-                    Toast.makeText(requireContext(), "请先在【凭证】页添加至少一个私钥或密码！", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), R.string.empty_keys, Toast.LENGTH_SHORT).show()
                     return@launch
                 }
                 EditServerDialog(requireContext(), viewLifecycleOwner.lifecycleScope) {
-                    Toast.makeText(requireContext(), "服务器已添加", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), R.string.toast_server_created, Toast.LENGTH_SHORT).show()
                 }.show()
             }
         }
@@ -84,7 +84,7 @@ class ServersFragment : Fragment() {
     private fun testServer(server: ServerEntity) {
         val progressDialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.testing_connection)
-            .setMessage("正在尝试建立 SSH 握手并验证鉴权信息...")
+            .setMessage(R.string.test_dialog_connecting)
             .setCancelable(false)
             .show()
 
@@ -97,15 +97,15 @@ class ServersFragment : Fragment() {
                 MaterialAlertDialogBuilder(requireContext())
                     .setTitle(R.string.connection_success)
                     .setIcon(R.drawable.ic_check_circle)
-                    .setMessage("成功连接到 ${server.host}:${server.port}，用户 ${server.username} 鉴权通过！")
-                    .setPositiveButton("确定", null)
+                    .setMessage(getString(R.string.test_dialog_success_msg, server.host, server.port, server.username))
+                    .setPositiveButton(R.string.btn_ok, null)
                     .show()
             } else {
                 MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("连接或认证失败")
+                    .setTitle(R.string.test_dialog_failed_title)
                     .setIcon(R.drawable.ic_error_outline)
-                    .setMessage(result.errorMessage ?: "未知错误")
-                    .setPositiveButton("确定", null)
+                    .setMessage(result.errorMessage ?: "Unknown error")
+                    .setPositiveButton(R.string.btn_ok, null)
                     .show()
             }
         }
@@ -118,7 +118,7 @@ class ServersFragment : Fragment() {
             .setPositiveButton(R.string.action_delete) { _, _ ->
                 viewLifecycleOwner.lifecycleScope.launch {
                     App.database.serverDao().delete(server)
-                    Toast.makeText(requireContext(), "已删除服务器", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), R.string.toast_server_deleted, Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton(R.string.cancel, null)

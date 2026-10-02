@@ -76,7 +76,7 @@
             style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="复制回显" />
+            android:text="@string/btn_copy_output" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_close_dialog"

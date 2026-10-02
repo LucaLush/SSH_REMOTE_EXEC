@@ -8,6 +8,7 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import com.antigravity.sshwake.App
+import com.antigravity.sshwake.R
 import com.antigravity.sshwake.ssh.SSHExecutor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -65,7 +66,7 @@ class SSHWidgetProvider : AppWidgetProvider() {
             }
 
             if (commandId.isNullOrBlank()) {
-                Toast.makeText(context, "未找到关联命令，请重新配置小组件", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, R.string.widget_missing_command, Toast.LENGTH_SHORT).show()
                 return
             }
 
@@ -73,13 +74,13 @@ class SSHWidgetProvider : AppWidgetProvider() {
                 val db = App.database
                 val command = db.commandDao().getById(commandId)
                 if (command == null) {
-                    Toast.makeText(context, "关联命令已被删除", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, R.string.widget_command_deleted, Toast.LENGTH_SHORT).show()
                     return@launch
                 }
 
                 val server = db.serverDao().getById(command.serverId)
                 if (server == null) {
-                    Toast.makeText(context, "关联服务器不存在", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, R.string.widget_server_deleted, Toast.LENGTH_SHORT).show()
                     return@launch
                 }
 
@@ -89,7 +90,7 @@ class SSHWidgetProvider : AppWidgetProvider() {
                 if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
                     WidgetManager.updateWidgetView(context, appWidgetManager, appWidgetId, command, WidgetState.RUNNING)
                 }
-                Toast.makeText(context, "正在执行: ${command.name}...", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.widget_executing, command.name), Toast.LENGTH_SHORT).show()
 
                 // 2. 发起 SSH 执行
                 val result = SSHExecutor.executeCommand(

@@ -58,7 +58,7 @@
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="复制命令"
+                android:contentDescription="@string/action_copy"
                 android:src="@drawable/ic_copy"
                 app:tint="@color/text_secondary" />
 

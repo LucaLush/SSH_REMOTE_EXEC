@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.antigravity.sshwake.R
 import com.antigravity.sshwake.data.CommandWithServer
 import com.antigravity.sshwake.databinding.ItemCommandBinding
 
@@ -27,10 +28,11 @@ class CommandAdapter(
             binding.tvCommandScript.text = item.command.command
 
             val copyCommand = {
-                val clipboard = binding.root.context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val context = binding.root.context
+                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                 val clip = android.content.ClipData.newPlainText("SSH Command", item.command.command)
                 clipboard.setPrimaryClip(clip)
-                android.widget.Toast.makeText(binding.root.context, "已复制指令：${item.command.command}", android.widget.Toast.LENGTH_SHORT).show()
+                android.widget.Toast.makeText(context, context.getString(R.string.toast_copied_command, item.command.command), android.widget.Toast.LENGTH_SHORT).show()
                 true
             }
 

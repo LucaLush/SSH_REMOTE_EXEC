@@ -21,17 +21,20 @@ class ServerAdapter(
             binding.tvServerName.text = server.name
             binding.tvServerEndpoint.text = "${server.username}@${server.host}:${server.port}"
 
+            val context = binding.root.context
             if (server.authType == AuthType.KEY) {
-                binding.chipAuthType.text = binding.root.context.getString(R.string.auth_key)
+                binding.tvAuthType.text = context.getString(R.string.auth_key_badge)
+                binding.ivAuthIcon.setImageResource(R.drawable.ic_key)
             } else {
-                binding.chipAuthType.text = binding.root.context.getString(R.string.auth_password)
+                binding.tvAuthType.text = context.getString(R.string.auth_password_badge)
+                binding.ivAuthIcon.setImageResource(R.drawable.ic_key)
             }
 
             binding.root.setOnLongClickListener {
-                val clipboard = binding.root.context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                 val clip = android.content.ClipData.newPlainText("Server Endpoint", "${server.username}@${server.host}:${server.port}")
                 clipboard.setPrimaryClip(clip)
-                android.widget.Toast.makeText(binding.root.context, "已复制服务器地址：${server.host}", android.widget.Toast.LENGTH_SHORT).show()
+                android.widget.Toast.makeText(context, context.getString(R.string.toast_copied_server, server.host), android.widget.Toast.LENGTH_SHORT).show()
                 true
             }
 

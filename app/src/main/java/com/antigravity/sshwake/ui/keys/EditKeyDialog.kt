@@ -29,13 +29,13 @@ class EditKeyDialog(
 
         fun updateUIForKeyType(isKey: Boolean) {
             if (isKey) {
-                binding.layoutSecret.hint = "私钥内容 (-----BEGIN OPENSSH PRIVATE KEY-----)"
+                binding.layoutSecret.hint = context.getString(R.string.hint_private_key_secret)
                 binding.layoutPassphrase.visibility = View.VISIBLE
                 binding.etSecretContent.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
                 binding.etSecretContent.minLines = 4
                 binding.etSecretContent.maxLines = 10
             } else {
-                binding.layoutSecret.hint = "密码明文"
+                binding.layoutSecret.hint = context.getString(R.string.hint_password_secret)
                 binding.layoutPassphrase.visibility = View.GONE
                 binding.etSecretContent.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
                 binding.etSecretContent.minLines = 1
@@ -44,7 +44,7 @@ class EditKeyDialog(
         }
 
         if (existingKey != null) {
-            binding.tvDialogTitle.text = "编辑凭证"
+            binding.tvDialogTitle.text = context.getString(R.string.edit_key)
             binding.etKeyName.setText(existingKey.name)
             val isKey = (existingKey.type == KeyType.PRIVATE_KEY)
             if (isKey) {
@@ -85,11 +85,11 @@ class EditKeyDialog(
                 val passphrase = binding.etPassphrase.text?.toString()?.trim() ?: ""
 
                 if (name.isEmpty()) {
-                    binding.etKeyName.error = "请输入凭据名称"
+                    binding.etKeyName.error = context.getString(R.string.err_enter_key_name)
                     return@setOnClickListener
                 }
                 if (secret.isEmpty()) {
-                    binding.etSecretContent.error = "请输入密码或私钥内容"
+                    binding.etSecretContent.error = context.getString(R.string.err_enter_secret)
                     return@setOnClickListener
                 }
 
