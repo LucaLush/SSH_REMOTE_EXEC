@@ -60,9 +60,14 @@ jobs:
           if not has_xml and os.path.exists('gradle_test.log'):
               with open('gradle_test.log') as f:
                   lines = [l.strip() for l in f.readlines() if l.strip()]
-              errs = [l for l in lines if 'e: ' in l or 'FAILED' in l or 'Exception' in l or 'Caused by' in l]
-              snippet = ' ; '.join(errs[-8:] if errs else lines[-12:])
-              print(f'::error title=Gradle Build Error::{snippet[:1000]}')
+              kt_errs = [l for l in lines if l.startswith('e: ') or ': error:' in l]
+              if kt_errs:
+                  snippet = ' \n '.join(kt_errs[:5])
+                  print(f'::error title=Kotlin Compile Error::{snippet[:1000]}')
+              else:
+                  errs = [l for l in lines if 'e: ' in l or 'FAILED' in l or 'Exception' in l or 'Caused by' in l]
+                  snippet = ' ; '.join(errs[-8:] if errs else lines[-12:])
+                  print(f'::error title=Gradle Build Error::{snippet[:1000]}')
           "
 
       # 测试报告归档（无论成功失败均归档，方便在线查看详情）

@@ -159,7 +159,7 @@ object SSHExecutor {
 
         return client.loadKeys(
             normalizedKey,
-            null,
+            null as String?,
             passwordFinder
         )
     }
