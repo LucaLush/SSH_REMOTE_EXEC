@@ -6,6 +6,7 @@ import com.antigravity.sshwake.data.KeyType
 import com.antigravity.sshwake.data.ServerEntity
 import com.antigravity.sshwake.security.CryptoHelper
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import net.schmizz.sshj.SSHClient
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier
@@ -53,16 +54,20 @@ object SSHExecutor {
             val session = client.startSession()
             try {
                 val cmd = session.exec(command)
-                var timedOut = false
-                try {
-                    cmd.join(timeoutSeconds.toLong(), TimeUnit.SECONDS)
-                } catch (e: net.schmizz.sshj.connection.ConnectionException) {
-                    if (e.message?.contains("Timeout expired", ignoreCase = true) == true) {
-                        timedOut = true
-                    } else {
-                        throw e
+                val deadline = System.currentTimeMillis() + (timeoutSeconds * 1000L)
+                while (System.currentTimeMillis() < deadline) {
+                    if (cmd.exitStatus != null || !cmd.isOpen) {
+                        break
                     }
+                    delay(50)
                 }
+
+                // 若主进程已退出但流尚未EOF，给予短暂缓冲期（50ms）收取残留输出
+                if (cmd.exitStatus != null && !cmd.isEOF) {
+                    delay(50)
+                }
+
+                val timedOut = (cmd.exitStatus == null && cmd.isOpen)
 
                 val isEOF = cmd.isEOF
                 val stdout = readStream(cmd.inputStream, isEOF)
