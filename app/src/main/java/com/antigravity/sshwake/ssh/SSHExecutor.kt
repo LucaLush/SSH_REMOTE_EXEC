@@ -41,8 +41,8 @@ object SSHExecutor {
         val client = SSHClient()
         try {
             client.addHostKeyVerifier(PromiscuousVerifier())
-            client.connectTimeout = (timeoutSeconds * 1000).coerceAtLeast(3000)
-            client.timeout = (timeoutSeconds * 1000).coerceAtLeast(3000)
+            client.connectTimeout = 10000
+            client.timeout = ((timeoutSeconds + 10) * 1000).coerceAtLeast(20000)
 
             // 连接目标主机
             client.connect(server.host, server.port)
@@ -53,11 +53,21 @@ object SSHExecutor {
             val session = client.startSession()
             try {
                 val cmd = session.exec(command)
-                cmd.join(timeoutSeconds.toLong(), TimeUnit.SECONDS)
+                var timedOut = false
+                try {
+                    cmd.join(timeoutSeconds.toLong(), TimeUnit.SECONDS)
+                } catch (e: net.schmizz.sshj.connection.ConnectionException) {
+                    if (e.message?.contains("Timeout expired", ignoreCase = true) == true) {
+                        timedOut = true
+                    } else {
+                        throw e
+                    }
+                }
 
-                val stdout = readStream(cmd.inputStream)
-                val stderr = readStream(cmd.errorStream)
-                val exitStatus = cmd.exitStatus
+                val isEOF = cmd.isEOF
+                val stdout = readStream(cmd.inputStream, isEOF)
+                val stderr = readStream(cmd.errorStream, isEOF)
+                val exitStatus = try { cmd.exitStatus } catch (_: Exception) { null }
 
                 val fullOutput = buildString {
                     if (stdout.isNotBlank()) append(stdout)
@@ -67,12 +77,30 @@ object SSHExecutor {
                     }
                 }.trim()
 
-                val isSuccess = (exitStatus == null || exitStatus == 0)
+                // 若主进程已退出且退出代码为 0，即使后台子进程未完全关闭输出流，也判定为主命令成功
+                val isSuccess = when {
+                    exitStatus == 0 -> true
+                    !timedOut && exitStatus == null -> true
+                    else -> false
+                }
+
+                val defaultSuccessMsg = if (timedOut) {
+                    "执行成功（主命令已退出，后台子进程未关闭输出通道）"
+                } else {
+                    "执行成功（命令无回传输出）"
+                }
+
+                val errorMessage = when {
+                    isSuccess -> null
+                    timedOut -> "执行等待超时（已等待 ${timeoutSeconds} 秒）。若命令启动了后台进程，建议在脚本末尾重定向输出：> /dev/null 2>&1 &"
+                    else -> "进程退出代码: $exitStatus"
+                }
+
                 SSHResult(
                     isSuccess = isSuccess,
                     exitCode = exitStatus,
-                    output = fullOutput.ifBlank { "执行成功（命令无回传输出）" },
-                    errorMessage = if (!isSuccess) "进程退出代码: $exitStatus" else null
+                    output = fullOutput.ifBlank { defaultSuccessMsg },
+                    errorMessage = errorMessage
                 )
             } finally {
                 session.close()
@@ -165,9 +193,21 @@ object SSHExecutor {
         )
     }
 
-    private fun readStream(stream: InputStream): String {
+    private fun readStream(stream: InputStream?, isEOF: Boolean = true): String {
+        if (stream == null) return ""
         return try {
-            stream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+            if (isEOF) {
+                stream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+            } else {
+                val available = stream.available()
+                if (available > 0) {
+                    val bytes = ByteArray(available)
+                    val read = stream.read(bytes)
+                    if (read > 0) String(bytes, 0, read, Charsets.UTF_8) else ""
+                } else {
+                    ""
+                }
+            }
         } catch (_: Exception) {
             ""
         }
