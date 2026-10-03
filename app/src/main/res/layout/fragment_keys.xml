@@ -15,6 +15,7 @@
             android:layout_height="wrap_content"
             android:scrollbars="none"
             android:overScrollMode="never"
+            android:clipToPadding="false"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
             android:paddingTop="8dp"
@@ -57,16 +58,15 @@
         </FrameLayout>
     </LinearLayout>
 
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_key"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
-        android:text="@string/btn_add_key"
-        app:icon="@drawable/ic_add"
+        android:contentDescription="@string/btn_add_key"
+        android:src="@drawable/ic_add"
         app:backgroundTint="?attr/colorPrimary"
-        android:textColor="?attr/colorOnPrimary"
-        app:iconTint="?attr/colorOnPrimary" />
+        app:tint="?attr/colorOnPrimary" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
