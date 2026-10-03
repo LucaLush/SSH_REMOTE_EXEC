@@ -52,13 +52,32 @@ class EditCommandDialog(
             val distinctPackages = (allCommands.map { it.command.packageGroup } + listOf("Default")).distinct().filter { it.isNotBlank() }
 
             withContext(Dispatchers.Main) {
-                val serverNames = servers.map { "${it.name} (${it.host})" }
-                val dropdownAdapter = ArrayAdapter(
-                    context,
-                    android.R.layout.simple_dropdown_item_1line,
-                    serverNames
-                )
-                binding.actvServer.setAdapter(dropdownAdapter)
+                var currentSortedServers = servers
+
+                fun updateServerDropdown() {
+                    val currentCommandPackage = binding.actvPackage.text?.toString()?.trim() ?: "Default"
+                    currentSortedServers = servers.sortedWith(
+                        compareByDescending<ServerEntity> { it.packageGroup.equals(currentCommandPackage, ignoreCase = true) }
+                            .thenBy { it.packageGroup }
+                            .thenBy { it.name }
+                    )
+
+                    val serverNames = currentSortedServers.map { "[${it.packageGroup}] ${it.name} (${it.host}:${it.port})" }
+                    val dropdownAdapter = ArrayAdapter(
+                        context,
+                        android.R.layout.simple_dropdown_item_1line,
+                        serverNames
+                    )
+                    binding.actvServer.setAdapter(dropdownAdapter)
+
+                    if (currentSortedServers.isNotEmpty()) {
+                        val initialIndex = currentSortedServers.indexOfFirst { it.id == selectedServerId }.let { if (it >= 0) it else 0 }
+                        binding.actvServer.setText(serverNames[initialIndex], false)
+                        selectedServerId = currentSortedServers[initialIndex].id
+                    }
+                }
+
+                updateServerDropdown()
 
                 val pkgAdapter = ArrayAdapter(
                     context,
@@ -66,15 +85,12 @@ class EditCommandDialog(
                     distinctPackages
                 )
                 binding.actvPackage.setAdapter(pkgAdapter)
-
-                if (servers.isNotEmpty()) {
-                    val initialIndex = servers.indexOfFirst { it.id == selectedServerId }.let { if (it >= 0) it else 0 }
-                    binding.actvServer.setText(serverNames[initialIndex], false)
-                    selectedServerId = servers[initialIndex].id
+                binding.actvPackage.setOnItemClickListener { _, _, _, _ ->
+                    updateServerDropdown()
                 }
 
                 binding.actvServer.setOnItemClickListener { _, _, position, _ ->
-                    selectedServerId = servers.getOrNull(position)?.id ?: ""
+                    selectedServerId = currentSortedServers.getOrNull(position)?.id ?: ""
                 }
             }
         }

@@ -52,11 +52,19 @@ class EditServerDialog(
 
         fun updateKeyDropdown() {
             val isKeyMode = binding.rbAuthKey.isChecked
-            currentFilteredKeys = allKeys.filter {
+            val currentServerPackage = binding.actvPackage.text?.toString()?.trim() ?: "Default"
+            val matchingKeys = allKeys.filter {
                 if (isKeyMode) it.type == KeyType.PRIVATE_KEY else it.type == KeyType.PASSWORD
             }
+            // 智能排序：优先将同分组的凭证排在最前面，其余按分组和名称排序
+            currentFilteredKeys = matchingKeys.sortedWith(
+                compareByDescending<KeyEntity> { it.packageGroup.equals(currentServerPackage, ignoreCase = true) }
+                    .thenBy { it.packageGroup }
+                    .thenBy { it.name }
+            )
+
             val typeSuffix = if (isKeyMode) context.getString(R.string.auth_key) else context.getString(R.string.auth_password)
-            val keyNames = currentFilteredKeys.map { "${it.name} ($typeSuffix)" }
+            val keyNames = currentFilteredKeys.map { "[${it.packageGroup}] ${it.name} ($typeSuffix)" }
             val adapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, keyNames)
             binding.actvKeys.setAdapter(adapter)
 
@@ -76,6 +84,10 @@ class EditServerDialog(
             }
         }
 
+        binding.actvPackage.setOnItemClickListener { _, _, _, _ ->
+            updateKeyDropdown()
+        }
+
         binding.rgAuthType.setOnCheckedChangeListener { _, checkedId ->
             updateKeyDropdown()
             if (checkedId == R.id.rb_auth_key && currentFilteredKeys.isEmpty()) {
@@ -90,6 +102,7 @@ class EditServerDialog(
                 context = context,
                 scope = scope,
                 defaultType = targetType,
+                defaultPackage = binding.actvPackage.text?.toString()?.trim()?.ifEmpty { "Default" },
                 onSaved = { newKey: KeyEntity ->
                     scope.launch {
                         allKeys = App.database.keyDao().getAll()

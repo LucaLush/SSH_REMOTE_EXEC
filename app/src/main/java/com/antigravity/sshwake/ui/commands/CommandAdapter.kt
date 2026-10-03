@@ -22,7 +22,11 @@ class CommandAdapter(
             binding.tvCommandName.text = item.command.name
             binding.tvPackageBadge.text = item.command.packageGroup
             binding.tvServerName.text = if (item.server != null) {
-                "${item.server.name} (${item.server.host}:${item.server.port})"
+                if (item.server.packageGroup != item.command.packageGroup) {
+                    "${item.server.name} (${item.server.host}:${item.server.port}) • [${item.server.packageGroup}]"
+                } else {
+                    "${item.server.name} (${item.server.host}:${item.server.port})"
+                }
             } else {
                 "⚠️ 未关联服务器或已丢失"
             }
