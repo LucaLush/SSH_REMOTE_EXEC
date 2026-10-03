@@ -20,11 +20,15 @@ class EditCommandDialog(
     private val context: Context,
     private val scope: CoroutineScope,
     private val existingCommand: CommandEntity? = null,
+    private val defaultPackage: String? = null,
     private val onSaved: () -> Unit
 ) {
     fun show() {
         val binding = DialogEditCommandBinding.inflate(LayoutInflater.from(context))
         var servers = listOf<ServerEntity>()
+
+        val initialPackage = existingCommand?.packageGroup ?: (defaultPackage ?: "Default")
+        binding.actvPackage.setText(initialPackage, false)
 
         if (existingCommand != null) {
             binding.tvDialogTitle.text = context.getString(R.string.edit_command)
@@ -41,9 +45,12 @@ class EditCommandDialog(
 
         var selectedServerId: String = existingCommand?.serverId ?: ""
 
-        // 异步加载服务器列表填充下拉菜单
+        // 异步加载服务器列表及已存在的分组填充下拉菜单
         scope.launch {
             servers = App.database.serverDao().getAll()
+            val allCommands = App.database.commandDao().getAllWithServer()
+            val distinctPackages = (allCommands.map { it.command.packageGroup } + listOf("Default")).distinct().filter { it.isNotBlank() }
+
             withContext(Dispatchers.Main) {
                 val serverNames = servers.map { "${it.name} (${it.host})" }
                 val dropdownAdapter = ArrayAdapter(
@@ -52,6 +59,13 @@ class EditCommandDialog(
                     serverNames
                 )
                 binding.actvServer.setAdapter(dropdownAdapter)
+
+                val pkgAdapter = ArrayAdapter(
+                    context,
+                    android.R.layout.simple_dropdown_item_1line,
+                    distinctPackages
+                )
+                binding.actvPackage.setAdapter(pkgAdapter)
 
                 if (servers.isNotEmpty()) {
                     val initialIndex = servers.indexOfFirst { it.id == selectedServerId }.let { if (it >= 0) it else 0 }
@@ -71,6 +85,7 @@ class EditCommandDialog(
                 val script = binding.etCommandScript.text?.toString()?.trim() ?: ""
                 val timeoutStr = binding.etTimeout.text?.toString()?.trim() ?: "8"
                 val timeout = timeoutStr.toIntOrNull() ?: 8
+                val pkgGroup = binding.actvPackage.text?.toString()?.trim()?.ifBlank { "Default" } ?: "Default"
 
                 if (name.isEmpty()) {
                     binding.etCommandName.error = context.getString(R.string.err_enter_command_name)
@@ -94,7 +109,8 @@ class EditCommandDialog(
                             name = name,
                             serverId = serverId,
                             command = script,
-                            timeoutSeconds = timeout
+                            timeoutSeconds = timeout,
+                            packageGroup = pkgGroup
                         )
                         commandDao.insert(newCmd)
                     } else {
@@ -102,7 +118,8 @@ class EditCommandDialog(
                             name = name,
                             serverId = serverId,
                             command = script,
-                            timeoutSeconds = timeout
+                            timeoutSeconds = timeout,
+                            packageGroup = pkgGroup
                         )
                         commandDao.update(updated)
                     }

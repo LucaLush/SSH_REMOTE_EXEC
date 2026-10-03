@@ -22,10 +22,14 @@ class EditKeyDialog(
     private val scope: CoroutineScope,
     private val existingKey: KeyEntity? = null,
     private val defaultType: KeyType = KeyType.PASSWORD,
+    private val defaultPackage: String? = null,
     private val onSaved: (KeyEntity) -> Unit = {}
 ) {
     fun show() {
         val binding = DialogEditKeyBinding.inflate(LayoutInflater.from(context))
+
+        val initialPackage = existingKey?.packageGroup ?: (defaultPackage ?: "Default")
+        binding.actvPackage.setText(initialPackage, false)
 
         fun updateUIForKeyType(isKey: Boolean) {
             if (isKey) {
@@ -71,6 +75,19 @@ class EditKeyDialog(
             updateUIForKeyType(checkedId == R.id.rb_type_private_key)
         }
 
+        scope.launch {
+            val allKeys = App.database.keyDao().getAll()
+            val distinctPackages = (allKeys.map { it.packageGroup } + listOf("Default")).distinct().filter { it.isNotBlank() }
+            withContext(Dispatchers.Main) {
+                val packageAdapter = android.widget.ArrayAdapter(
+                    context,
+                    android.R.layout.simple_dropdown_item_1line,
+                    distinctPackages
+                )
+                binding.actvPackage.setAdapter(packageAdapter)
+            }
+        }
+
         val dialog = MaterialAlertDialogBuilder(context)
             .setView(binding.root)
             .setPositiveButton(R.string.save, null)
@@ -83,6 +100,7 @@ class EditKeyDialog(
                 val secret = binding.etSecretContent.text?.toString()?.trim() ?: ""
                 val isPrivateKey = binding.rbTypePrivateKey.isChecked
                 val passphrase = binding.etPassphrase.text?.toString()?.trim() ?: ""
+                val packageGroup = binding.actvPackage.text?.toString()?.trim()?.ifEmpty { "Default" } ?: "Default"
 
                 if (name.isEmpty()) {
                     binding.etKeyName.error = context.getString(R.string.err_enter_key_name)
@@ -104,7 +122,8 @@ class EditKeyDialog(
                             name = name,
                             type = keyType,
                             encryptedSecret = encryptedSecret,
-                            encryptedPassphrase = encryptedPassphrase
+                            encryptedPassphrase = encryptedPassphrase,
+                            packageGroup = packageGroup
                         )
                         keyDao.insert(newKey)
                         newKey
@@ -113,7 +132,8 @@ class EditKeyDialog(
                             name = name,
                             type = keyType,
                             encryptedSecret = encryptedSecret,
-                            encryptedPassphrase = encryptedPassphrase
+                            encryptedPassphrase = encryptedPassphrase,
+                            packageGroup = packageGroup
                         )
                         keyDao.update(updated)
                         updated

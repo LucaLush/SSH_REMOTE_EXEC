@@ -112,4 +112,21 @@
     <string name="widget_already_running">Command is already running, please wait...</string>
     <string name="widget_success">✔ %1$s executed successfully</string>
     <string name="widget_error">✖ %1$s failed: %2$s</string>
+
+    <!-- Package & Group Management -->
+    <string name="package_group">Package</string>
+    <string name="all_packages">All</string>
+    <string name="default_package">Default</string>
+    <string name="hint_package">Select or enter package name</string>
+
+    <!-- About & App Info -->
+    <string name="menu_about">About</string>
+    <string name="about_title">About SSH Remote Exec</string>
+    <string name="about_version">Version: %1$s</string>
+    <string name="about_build">Build: %1$d</string>
+    <string name="about_description">A secure, lightweight, and modern Android SSH command executor with one-tap home screen widget triggers.</string>
+    <string name="about_github">GitHub Repository</string>
+    <string name="about_copied_url">Project URL copied to clipboard</string>
+    <string name="about_tech_stack">Architecture &amp; Security</string>
+    <string name="about_tech_details">• SSHv2 via SSHJ &amp; BouncyCastle\n• AES-256-GCM via Android Keystore\n• Multi-Package Workspace Management\n• One-Tap Home Widgets &amp; Watchdogs</string>
 </resources>

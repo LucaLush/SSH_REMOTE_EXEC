@@ -27,5 +27,6 @@ data class CommandEntity(
     val timeoutSeconds: Int = 8,
     val iconName: String = "ic_power",
     val colorHex: String = "#1E293B",
+    val packageGroup: String = "Default", // 所属包 / 分组
     val createdAt: Long = System.currentTimeMillis()
 )

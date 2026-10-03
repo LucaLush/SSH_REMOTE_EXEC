@@ -24,11 +24,13 @@ class EntityModelUnitTest {
         assertEquals(22, server1.port)
         assertEquals(AuthType.PASSWORD, server1.authType)
         assertEquals(8, server1.timeoutSeconds)
+        assertEquals("Default", server1.packageGroup)
         assertTrue(server1.createdAt > 0)
 
-        val server2 = server1.copy(port = 2222, authType = AuthType.KEY)
+        val server2 = server1.copy(port = 2222, authType = AuthType.KEY, packageGroup = "HomeLab")
         assertEquals(2222, server2.port)
         assertEquals(AuthType.KEY, server2.authType)
+        assertEquals("HomeLab", server2.packageGroup)
         assertEquals(server1.id, server2.id)
 
         val server3 = ServerEntity(name = "Server 3", host = "10.0.0.1")
@@ -41,13 +43,15 @@ class EntityModelUnitTest {
             name = "My RSA Key",
             type = KeyType.PRIVATE_KEY,
             encryptedSecret = "ENCRYPTED_DATA_MOCK",
-            encryptedPassphrase = "ENCRYPTED_PASSPHRASE_MOCK"
+            encryptedPassphrase = "ENCRYPTED_PASSPHRASE_MOCK",
+            packageGroup = "DevOps"
         )
         assertNotNull(key.id)
         assertEquals("My RSA Key", key.name)
         assertEquals(KeyType.PRIVATE_KEY, key.type)
         assertEquals("ENCRYPTED_DATA_MOCK", key.encryptedSecret)
         assertEquals("ENCRYPTED_PASSPHRASE_MOCK", key.encryptedPassphrase)
+        assertEquals("DevOps", key.packageGroup)
     }
 
     @Test
@@ -64,5 +68,6 @@ class EntityModelUnitTest {
         assertEquals(8, command.timeoutSeconds)
         assertEquals("ic_power", command.iconName)
         assertEquals("#1E293B", command.colorHex)
+        assertEquals("Default", command.packageGroup)
     }
 }

@@ -9,26 +9,52 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/tv_empty"
+        <HorizontalScrollView
+            android:id="@+id/scroll_packages"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:padding="32dp"
-            android:text="@string/empty_commands"
-            android:textColor="@color/text_secondary"
-            android:textSize="15sp"
-            android:visibility="gone" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_commands"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            android:overScrollMode="never"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
             android:paddingTop="8dp"
-            android:paddingBottom="96dp" />
+            android:paddingBottom="4dp">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chip_group_packages"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleLine="true"
+                app:singleSelection="true"
+                app:selectionRequired="true" />
+        </HorizontalScrollView>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/tv_empty"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:padding="32dp"
+                android:text="@string/empty_commands"
+                android:textColor="@color/text_secondary"
+                android:textSize="15sp"
+                android:visibility="gone" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_commands"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="96dp" />
+        </FrameLayout>
     </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton

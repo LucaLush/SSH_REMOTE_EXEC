@@ -27,6 +27,10 @@ class MainActivity : AppCompatActivity() {
             isAppearanceLightStatusBars = false
         }
 
+        binding.topAppBar.setNavigationOnClickListener {
+            com.antigravity.sshwake.ui.about.AboutDialog(this).show()
+        }
+
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
                 .add(R.id.nav_host_fragment, keysFragment, "KEYS").hide(keysFragment)

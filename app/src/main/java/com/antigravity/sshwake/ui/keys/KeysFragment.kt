@@ -37,10 +37,14 @@ class KeysFragment : Fragment() {
         observeData()
     }
 
+    private var allKeys: List<KeyEntity> = emptyList()
+    private var selectedPackage: String? = null
+    private var currentPackageList: List<String> = emptyList()
+
     private fun setupRecyclerView() {
         adapter = KeyAdapter(
             onEditClick = { key ->
-                EditKeyDialog(requireContext(), viewLifecycleOwner.lifecycleScope, key) {
+                EditKeyDialog(requireContext(), viewLifecycleOwner.lifecycleScope, existingKey = key) {
                     Toast.makeText(requireContext(), R.string.toast_key_updated, Toast.LENGTH_SHORT).show()
                 }.show()
             },
@@ -53,7 +57,7 @@ class KeysFragment : Fragment() {
 
     private fun setupListeners() {
         binding.fabAddKey.setOnClickListener {
-            EditKeyDialog(requireContext(), viewLifecycleOwner.lifecycleScope) {
+            EditKeyDialog(requireContext(), viewLifecycleOwner.lifecycleScope, defaultPackage = selectedPackage) {
                 Toast.makeText(requireContext(), R.string.toast_key_added, Toast.LENGTH_SHORT).show()
             }.show()
         }
@@ -61,14 +65,64 @@ class KeysFragment : Fragment() {
 
     private fun observeData() {
         App.database.keyDao().getAllLiveData().observe(viewLifecycleOwner) { list ->
-            if (list.isNullOrEmpty()) {
-                binding.tvEmpty.visibility = View.VISIBLE
-                binding.recyclerKeys.visibility = View.GONE
-            } else {
-                binding.tvEmpty.visibility = View.GONE
-                binding.recyclerKeys.visibility = View.VISIBLE
-                adapter.submitList(list)
+            allKeys = list ?: emptyList()
+            updatePackageChipsAndFilter()
+        }
+    }
+
+    private fun updatePackageChipsAndFilter() {
+        val packages = allKeys.map { it.packageGroup }.distinct().sorted()
+
+        if (packages != currentPackageList) {
+            currentPackageList = packages
+            binding.chipGroupPackages.removeAllViews()
+
+            val allChip = com.google.android.material.chip.Chip(requireContext()).apply {
+                text = getString(R.string.all_packages)
+                isCheckable = true
+                isChecked = (selectedPackage == null || selectedPackage !in packages)
+                setOnClickListener {
+                    selectedPackage = null
+                    filterAndSubmit()
+                }
             }
+            binding.chipGroupPackages.addView(allChip)
+
+            packages.forEach { pkgName ->
+                val chip = com.google.android.material.chip.Chip(requireContext()).apply {
+                    text = pkgName
+                    isCheckable = true
+                    isChecked = (selectedPackage == pkgName)
+                    setOnClickListener {
+                        selectedPackage = pkgName
+                        filterAndSubmit()
+                    }
+                }
+                binding.chipGroupPackages.addView(chip)
+            }
+
+            if (selectedPackage != null && selectedPackage !in packages) {
+                selectedPackage = null
+            }
+        }
+
+        filterAndSubmit()
+    }
+
+    private fun filterAndSubmit() {
+        val filtered = if (selectedPackage.isNullOrEmpty()) {
+            allKeys
+        } else {
+            allKeys.filter { it.packageGroup == selectedPackage }
+        }
+
+        if (filtered.isEmpty()) {
+            binding.tvEmpty.visibility = View.VISIBLE
+            binding.recyclerKeys.visibility = View.GONE
+        } else {
+            binding.tvEmpty.visibility = View.GONE
+            binding.recyclerKeys.visibility = View.VISIBLE
+            adapter.submitList(filtered)
         }
     }
 

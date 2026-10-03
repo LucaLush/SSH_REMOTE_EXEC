@@ -23,11 +23,15 @@ class EditServerDialog(
     private val context: Context,
     private val scope: CoroutineScope,
     private val existingServer: ServerEntity? = null,
+    private val defaultPackage: String? = null,
     private val onSaved: () -> Unit
 ) {
     fun show() {
         val binding = DialogEditServerBinding.inflate(LayoutInflater.from(context))
         var allKeys = listOf<KeyEntity>()
+
+        val initialPackage = existingServer?.packageGroup ?: (defaultPackage ?: "Default")
+        binding.actvPackage.setText(initialPackage, false)
 
         if (existingServer != null) {
             binding.tvDialogTitle.text = context.getString(R.string.edit_server)
@@ -107,8 +111,17 @@ class EditServerDialog(
 
         scope.launch {
             allKeys = App.database.keyDao().getAll()
+            val allServers = App.database.serverDao().getAll()
+            val distinctPackages = (allServers.map { it.packageGroup } + listOf("Default")).distinct().filter { it.isNotBlank() }
+
             withContext(Dispatchers.Main) {
                 updateKeyDropdown()
+                val pkgAdapter = ArrayAdapter(
+                    context,
+                    android.R.layout.simple_dropdown_item_1line,
+                    distinctPackages
+                )
+                binding.actvPackage.setAdapter(pkgAdapter)
             }
         }
 
@@ -120,6 +133,7 @@ class EditServerDialog(
                 val port = portStr.toIntOrNull() ?: 22
                 val username = binding.etUsername.text?.toString()?.trim() ?: "root"
                 val authType = if (binding.rbAuthKey.isChecked) AuthType.KEY else AuthType.PASSWORD
+                val pkgGroup = binding.actvPackage.text?.toString()?.trim()?.ifBlank { "Default" } ?: "Default"
 
                 if (name.isEmpty()) {
                     binding.etServerName.error = context.getString(R.string.err_enter_server_name)
@@ -152,7 +166,8 @@ class EditServerDialog(
                             port = port,
                             username = username,
                             authType = authType,
-                            keyId = keyId
+                            keyId = keyId,
+                            packageGroup = pkgGroup
                         )
                         serverDao.insert(newServer)
                     } else {
@@ -162,7 +177,8 @@ class EditServerDialog(
                             port = port,
                             username = username,
                             authType = authType,
-                            keyId = keyId
+                            keyId = keyId,
+                            packageGroup = pkgGroup
                         )
                         serverDao.update(updated)
                     }

@@ -45,6 +45,10 @@ class CommandsFragment : Fragment() {
         observeData()
     }
 
+    private var allCommands: List<CommandWithServer> = emptyList()
+    private var selectedPackage: String? = null
+    private var currentPackageList: List<String> = emptyList()
+
     private fun setupRecyclerView() {
         adapter = CommandAdapter(
             onRunClick = { item -> runCommand(item) },
@@ -53,7 +57,7 @@ class CommandsFragment : Fragment() {
                 Toast.makeText(requireContext(), R.string.pinned_to_desktop, Toast.LENGTH_SHORT).show()
             },
             onEditClick = { item ->
-                EditCommandDialog(requireContext(), viewLifecycleOwner.lifecycleScope, item.command) {
+                EditCommandDialog(requireContext(), viewLifecycleOwner.lifecycleScope, existingCommand = item.command) {
                     Toast.makeText(requireContext(), R.string.toast_command_updated, Toast.LENGTH_SHORT).show()
                 }.show()
             },
@@ -72,7 +76,7 @@ class CommandsFragment : Fragment() {
                     Toast.makeText(requireContext(), R.string.toast_need_server_first, Toast.LENGTH_SHORT).show()
                     return@launch
                 }
-                EditCommandDialog(requireContext(), viewLifecycleOwner.lifecycleScope) {
+                EditCommandDialog(requireContext(), viewLifecycleOwner.lifecycleScope, defaultPackage = selectedPackage) {
                     Toast.makeText(requireContext(), R.string.toast_command_created, Toast.LENGTH_SHORT).show()
                 }.show()
             }
@@ -81,14 +85,64 @@ class CommandsFragment : Fragment() {
 
     private fun observeData() {
         App.database.commandDao().getAllWithServerLiveData().observe(viewLifecycleOwner) { list ->
-            if (list.isNullOrEmpty()) {
-                binding.tvEmpty.visibility = View.VISIBLE
-                binding.recyclerCommands.visibility = View.GONE
-            } else {
-                binding.tvEmpty.visibility = View.GONE
-                binding.recyclerCommands.visibility = View.VISIBLE
-                adapter.submitList(list)
+            allCommands = list ?: emptyList()
+            updatePackageChipsAndFilter()
+        }
+    }
+
+    private fun updatePackageChipsAndFilter() {
+        val packages = allCommands.map { it.command.packageGroup }.distinct().sorted()
+
+        if (packages != currentPackageList) {
+            currentPackageList = packages
+            binding.chipGroupPackages.removeAllViews()
+
+            val allChip = com.google.android.material.chip.Chip(requireContext()).apply {
+                text = getString(R.string.all_packages)
+                isCheckable = true
+                isChecked = (selectedPackage == null || selectedPackage !in packages)
+                setOnClickListener {
+                    selectedPackage = null
+                    filterAndSubmit()
+                }
             }
+            binding.chipGroupPackages.addView(allChip)
+
+            packages.forEach { pkgName ->
+                val chip = com.google.android.material.chip.Chip(requireContext()).apply {
+                    text = pkgName
+                    isCheckable = true
+                    isChecked = (selectedPackage == pkgName)
+                    setOnClickListener {
+                        selectedPackage = pkgName
+                        filterAndSubmit()
+                    }
+                }
+                binding.chipGroupPackages.addView(chip)
+            }
+
+            if (selectedPackage != null && selectedPackage !in packages) {
+                selectedPackage = null
+            }
+        }
+
+        filterAndSubmit()
+    }
+
+    private fun filterAndSubmit() {
+        val filtered = if (selectedPackage.isNullOrEmpty()) {
+            allCommands
+        } else {
+            allCommands.filter { it.command.packageGroup == selectedPackage }
+        }
+
+        if (filtered.isEmpty()) {
+            binding.tvEmpty.visibility = View.VISIBLE
+            binding.recyclerCommands.visibility = View.GONE
+        } else {
+            binding.tvEmpty.visibility = View.GONE
+            binding.recyclerCommands.visibility = View.VISIBLE
+            adapter.submitList(filtered)
         }
     }
 

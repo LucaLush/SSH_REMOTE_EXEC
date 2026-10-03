@@ -38,11 +38,15 @@ class ServersFragment : Fragment() {
         observeData()
     }
 
+    private var allServers: List<ServerEntity> = emptyList()
+    private var selectedPackage: String? = null
+    private var currentPackageList: List<String> = emptyList()
+
     private fun setupRecyclerView() {
         adapter = ServerAdapter(
             onTestClick = { server -> testServer(server) },
             onEditClick = { server ->
-                EditServerDialog(requireContext(), viewLifecycleOwner.lifecycleScope, server) {
+                EditServerDialog(requireContext(), viewLifecycleOwner.lifecycleScope, existingServer = server) {
                     Toast.makeText(requireContext(), R.string.toast_server_updated, Toast.LENGTH_SHORT).show()
                 }.show()
             },
@@ -61,7 +65,7 @@ class ServersFragment : Fragment() {
                     Toast.makeText(requireContext(), R.string.empty_keys, Toast.LENGTH_SHORT).show()
                     return@launch
                 }
-                EditServerDialog(requireContext(), viewLifecycleOwner.lifecycleScope) {
+                EditServerDialog(requireContext(), viewLifecycleOwner.lifecycleScope, defaultPackage = selectedPackage) {
                     Toast.makeText(requireContext(), R.string.toast_server_created, Toast.LENGTH_SHORT).show()
                 }.show()
             }
@@ -70,14 +74,64 @@ class ServersFragment : Fragment() {
 
     private fun observeData() {
         App.database.serverDao().getAllLiveData().observe(viewLifecycleOwner) { list ->
-            if (list.isNullOrEmpty()) {
-                binding.tvEmpty.visibility = View.VISIBLE
-                binding.recyclerServers.visibility = View.GONE
-            } else {
-                binding.tvEmpty.visibility = View.GONE
-                binding.recyclerServers.visibility = View.VISIBLE
-                adapter.submitList(list)
+            allServers = list ?: emptyList()
+            updatePackageChipsAndFilter()
+        }
+    }
+
+    private fun updatePackageChipsAndFilter() {
+        val packages = allServers.map { it.packageGroup }.distinct().sorted()
+
+        if (packages != currentPackageList) {
+            currentPackageList = packages
+            binding.chipGroupPackages.removeAllViews()
+
+            val allChip = com.google.android.material.chip.Chip(requireContext()).apply {
+                text = getString(R.string.all_packages)
+                isCheckable = true
+                isChecked = (selectedPackage == null || selectedPackage !in packages)
+                setOnClickListener {
+                    selectedPackage = null
+                    filterAndSubmit()
+                }
             }
+            binding.chipGroupPackages.addView(allChip)
+
+            packages.forEach { pkgName ->
+                val chip = com.google.android.material.chip.Chip(requireContext()).apply {
+                    text = pkgName
+                    isCheckable = true
+                    isChecked = (selectedPackage == pkgName)
+                    setOnClickListener {
+                        selectedPackage = pkgName
+                        filterAndSubmit()
+                    }
+                }
+                binding.chipGroupPackages.addView(chip)
+            }
+
+            if (selectedPackage != null && selectedPackage !in packages) {
+                selectedPackage = null
+            }
+        }
+
+        filterAndSubmit()
+    }
+
+    private fun filterAndSubmit() {
+        val filtered = if (selectedPackage.isNullOrEmpty()) {
+            allServers
+        } else {
+            allServers.filter { it.packageGroup == selectedPackage }
+        }
+
+        if (filtered.isEmpty()) {
+            binding.tvEmpty.visibility = View.VISIBLE
+            binding.recyclerServers.visibility = View.GONE
+        } else {
+            binding.tvEmpty.visibility = View.GONE
+            binding.recyclerServers.visibility = View.VISIBLE
+            adapter.submitList(filtered)
         }
     }
 

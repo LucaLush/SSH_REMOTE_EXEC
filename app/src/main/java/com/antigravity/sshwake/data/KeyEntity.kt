@@ -17,5 +17,6 @@ data class KeyEntity(
     val type: KeyType,
     val encryptedSecret: String,       // 加密后的密码文本或私钥文本
     val encryptedPassphrase: String = "", // 若私钥有口令保护则存储加密口令
+    val packageGroup: String = "Default", // 所属包 / 分组
     val createdAt: Long = System.currentTimeMillis()
 )

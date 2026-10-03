@@ -19,6 +19,7 @@ class ServerAdapter(
     inner class ViewHolder(val binding: ItemServerBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(server: ServerEntity) {
             binding.tvServerName.text = server.name
+            binding.tvPackageBadge.text = server.packageGroup
             binding.tvServerEndpoint.text = "${server.username}@${server.host}:${server.port}"
 
             val context = binding.root.context

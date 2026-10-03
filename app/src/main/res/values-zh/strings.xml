@@ -112,4 +112,21 @@
     <string name="widget_already_running">正在执行中，请稍候...</string>
     <string name="widget_success">✔ %1$s 执行完成</string>
     <string name="widget_error">✖ %1$s 执行失败：%2$s</string>
+
+    <!-- Package & Group Management -->
+    <string name="package_group">分组</string>
+    <string name="all_packages">全部</string>
+    <string name="default_package">默认分组</string>
+    <string name="hint_package">选择或输入分组名称 (Package)</string>
+
+    <!-- About & App Info -->
+    <string name="menu_about">关于应用</string>
+    <string name="about_title">关于 SSH Remote Exec</string>
+    <string name="about_version">版本号：%1$s</string>
+    <string name="about_build">构建版本：%1$d</string>
+    <string name="about_description">轻量、安全、高效的 Android 远程 SSH 命令执行工具与桌面快捷小组件。</string>
+    <string name="about_github">开源项目主页 (GitHub)</string>
+    <string name="about_copied_url">已将项目链接复制到剪贴板</string>
+    <string name="about_tech_stack">技术架构与安全规范</string>
+    <string name="about_tech_details">• SSHv2 底层引擎 (SSHJ 0.38 + BouncyCastle)\n• 硬件隔离安全存储 (Android Keystore + AES-256-GCM)\n• 专属 Package 工作区分组管理\n• 桌面轻量快捷小组件 (Widget) 与底层防并发唤醒看门狗</string>
 </resources>
