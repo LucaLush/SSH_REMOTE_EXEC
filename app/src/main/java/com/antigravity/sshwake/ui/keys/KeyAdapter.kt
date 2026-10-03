@@ -22,6 +22,7 @@ class KeyAdapter(
 
     inner class ViewHolder(val binding: ItemKeyBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(key: KeyEntity) {
+            binding.tvKeyName.text = key.name
             val context = binding.root.context
             val typeStr = if (key.type == KeyType.PRIVATE_KEY) context.getString(R.string.key_type_key_desc) else context.getString(R.string.key_type_password_desc)
             val dateStr = dateFormat.format(Date(key.createdAt))

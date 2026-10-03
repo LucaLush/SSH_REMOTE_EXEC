@@ -15,9 +15,9 @@ fun getGitCommitCount(): Int {
 
 val gitCount = getGitCommitCount()
 val ciRunNumber = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull()
-// 基础偏移量 3000，确保高于之前编译出的旧版本号 (1~2025)，保证覆盖安装 100% 成功
+// 基础偏移量 3100，确保高于之前编译出的旧版本号 (1~3025)，保证覆盖安装 100% 成功
 val currentBuild = ciRunNumber ?: gitCount
-val appVersionCode = 3000 + currentBuild
+val appVersionCode = 3100 + currentBuild
 val appVersionName = "1.0.$currentBuild"
 
 android {
