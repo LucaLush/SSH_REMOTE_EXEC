@@ -123,13 +123,27 @@ sequenceDiagram
    - 携带 `PENDING_COMMAND_ID` 的 `PendingIntent` 作为成功回调；
    - 桌面创建图标后触发广播完成自动绑定。
 
-### 状态机流转 (State Transition)
+### 状态机流转 (State Transition) 与并发防护
+
 ```mermaid
 stateDiagram-v2
     [*] --> IDLE : 添加小部件 / 重置完成
-    IDLE --> RUNNING : 用户点击桌面小部件 (显示蓝色旋转图标)
+    IDLE --> RUNNING : 用户点击桌面小部件 (进入执行态，蓝色旋转)
+    RUNNING --> RUNNING : 用户再次点击 -> 拦截并提示“正在执行中，请稍候” (防重防抖)
     RUNNING --> SUCCESS : SSH 执行返回 0 (显示绿色对勾)
-    RUNNING --> ERROR : 网络握手失败 / 超时 / 非 0 (显示红色感叹号)
-    SUCCESS --> IDLE : 延时 800ms 自动复原
-    ERROR --> IDLE : 延时 2000ms 自动复原
+    RUNNING --> ERROR : 网络握手失败 / 超时 / 异常 (显示红色感叹号)
+    SUCCESS --> IDLE : 定时 800ms 到期 (内存延时 + AlarmManager 双保险)
+    ERROR --> IDLE : 定时 2000ms 到期 (内存延时 + AlarmManager 双保险)
+    SUCCESS --> RUNNING : 用户在 800ms 内再次点击 -> 取消复位定时器，直接开启新一轮执行
+    ERROR --> RUNNING : 用户在 2000ms 内再次点击 -> 取消复位定时器，直接重试执行
 ```
+
+### 三重定时复位保障机制（杜绝常绿/常红残留）
+1. **第一重：`goAsync()` 广播保活 + 内存协程延迟**：
+   - 用户点击触发时调用 `goAsync()` 告知操作系统当前广播处于异步生命周期；
+   - 进程存活时，通过 `delay(800L)` / `delay(2000L)` 快速轻量完成重置。
+2. **第二重：系统级 `AlarmManager` 唤醒定时器（RTC_WAKEUP）**：
+   - 切换为绿色或红色状态时，向系统 `AlarmManager` 注册 `ACTION_RESET_WIDGET_STATE` 闹钟；
+   - 即使手机此时处于**熄屏（Screen-Off）**、CPU 进入 Deep Sleep 深度休眠，或者应用后台进程被系统冻结（Cached/Frozen）或杀死（LMK），系统级定时器到期必定唤醒并发送广播重置小部件回 `IDLE` 默认颜色。
+3. **第三重：冷启动与前台巡检兜底**：
+   - 在 `App.onCreate()`、`MainActivity.onResume()` 以及 `onUpdate()` 时自动扫描所有桌面小部件，若发现任何状态超期（SUCCESS > 1.2s，ERROR > 2.5s，RUNNING > 25s），立刻强制复原为 `IDLE` 待命态。

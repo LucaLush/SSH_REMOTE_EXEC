@@ -46,20 +46,25 @@ graph LR
 - 静态注册的 `BroadcastReceiver` 的 `onReceive` 必须在几秒内返回，禁止启动后台 Service；
 - 若长时间占用 `onReceive`，系统会判定并触发 ANR。
 
-### 协程作用域方案 (`SupervisorJob`)
+### 协程作用域方案 (`SupervisorJob`)、`goAsync()` 与防并发机制
 在 `SSHWidgetProvider` 中：
 ```kotlin
 class SSHWidgetProvider : AppWidgetProvider() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val activeRunningWidgets = ConcurrentHashMap.newKeySet<Int>()
 }
 ```
 1. **为什么用 `SupervisorJob`**：
    - 保证若某次 SSH 连接由于超时抛出异常，**不会连带取消整个 Provider 的协程作用域**，后续的小部件点击依然能正常响应。
-2. **异步执行与即时响应**：
-   - 用户点击小部件后，`onReceive` 立即通过 `WidgetManager.updateWidgetView` 将小组件界面切换至 `RUNNING` 态（蓝色转圈）并返回；
-   - `scope.launch` 触发后台协程切入 `Dispatchers.IO` 执行 SSH 连接与通信；
-   - 结果返回后切回 `Dispatchers.Main`，更新小组件为 `SUCCESS`（绿色）或 `ERROR`（红色）；
-   - 通过 `delay(800)` / `delay(2000)` 平滑自动重置回 `IDLE` 待命态。
+2. **防重并发互斥锁**：
+   - 在接收到点击事件时，校验 `activeRunningWidgets` 以及 SharedPreferences 中的状态；
+   - 若当前小部件已处于 `RUNNING` 且未超期，立即弹 Toast 提示“正在执行中，请稍候”并返回，彻底杜绝短时间快速连点导致并发发包、SSH 连接池打满或远端服务器状态错乱。
+3. **`goAsync()` 保活机制**：
+   - 调用 `val pendingResult = goAsync()`，向 Android ActivityManager 注册异步广播生命周期，确保在网络通信期间进程不被系统视为空闲而提前强制休眠；
+   - 最终在 `finally` 块中调用 `pendingResult.finish()` 释放广播。
+4. **AlarmManager 硬件唤醒重置**：
+   - 传统 `delay()` 无法穿透系统的熄屏深度休眠（Deep Sleep）或进程被 LMK 冻结清理；
+   - 本项目通过 `AlarmManager.setExactAndAllowWhileIdle` 结合 `ACTION_RESET_WIDGET_STATE` 广播，即便手机熄屏，系统级 Alarm 触发后必定唤醒设备并将小部件恢复至 `IDLE` 初始默认颜色。
 
 ---
 

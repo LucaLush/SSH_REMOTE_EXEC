@@ -109,4 +109,7 @@
     <string name="widget_command_deleted">关联命令已被删除</string>
     <string name="widget_server_deleted">关联服务器不存在</string>
     <string name="widget_executing">正在执行: %1$s...</string>
+    <string name="widget_already_running">正在执行中，请稍候...</string>
+    <string name="widget_success">✔ %1$s 执行完成</string>
+    <string name="widget_error">✖ %1$s 执行失败：%2$s</string>
 </resources>

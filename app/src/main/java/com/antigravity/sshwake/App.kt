@@ -27,6 +27,9 @@ class App : Application() {
 
         // 预热 Keystore 加密环境
         CryptoHelper.init(this)
+
+        // 启动时巡检重置任何异常驻留的桌面小组件状态
+        com.antigravity.sshwake.widget.WidgetManager.checkAndResetExpiredWidgets(this)
     }
 
     private fun setupBouncyCastle() {

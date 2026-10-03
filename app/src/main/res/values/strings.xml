@@ -109,4 +109,7 @@
     <string name="widget_command_deleted">Associated command was deleted</string>
     <string name="widget_server_deleted">Associated server not found</string>
     <string name="widget_executing">Executing: %1$s...</string>
+    <string name="widget_already_running">Command is already running, please wait...</string>
+    <string name="widget_success">✔ %1$s executed successfully</string>
+    <string name="widget_error">✖ %1$s failed: %2$s</string>
 </resources>

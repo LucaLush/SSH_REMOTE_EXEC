@@ -65,4 +65,10 @@ class MainActivity : AppCompatActivity() {
             binding.topAppBar.title = title
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        // 每次切回主应用界面时，自动巡检桌面小部件，恢复任何超期的变色状态
+        com.antigravity.sshwake.widget.WidgetManager.checkAndResetExpiredWidgets(this)
+    }
 }

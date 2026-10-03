@@ -40,6 +40,7 @@
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.antigravity.sshwake.ACTION_TRIGGER_COMMAND" />
+                <action android:name="com.antigravity.sshwake.ACTION_RESET_WIDGET_STATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
