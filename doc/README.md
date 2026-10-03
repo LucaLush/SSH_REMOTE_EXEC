@@ -10,8 +10,8 @@
 | :--- | :--- |
 | 🏗️ **[系统架构设计与数据流 (ARCHITECTURE.md)](ARCHITECTURE.md)** | • 核心分层架构（UI、持久层、SSH 驱动层、安全隔离层）<br/>• 三层解耦实体模型（凭证库、服务器、命令）与 ER 关系<br/>• Android Keystore 硬件级 AES-256-GCM 加密与解密全流程<br/>• 桌面小部件 (AppWidget) 双向绑定机制与状态机流转 |
 | 🔌 **[SSH 对接与执行引擎深度解析 (SSH_INTEGRATION.md)](SSH_INTEGRATION.md)** | • SSHJ 0.38.0 与 BouncyCastle 1.78.1 技术选型理由<br/>• BouncyCastle 动态安全提供者注入机制<br/>• 纯内存私钥字符串解析（杜绝 ENOENT 磁盘路径陷阱）<br/>• **核心算法**：反应式非阻塞轮询（彻底解决后台子进程卡死与假超时） |
-| 🧵 **[线程模型与组件生命周期 (THREADING_AND_LIFECYCLE.md)](THREADING_AND_LIFECYCLE.md)** | • Kotlin 协程调度模型（`Dispatchers.Main` 与 `Dispatchers.IO` 分工）<br/>• `SSHWidgetProvider` 协程作用域与 `SupervisorJob` 容错隔离<br/>• Android 12+ 广播限制与后台短生命周期适配<br/>• ViewBinding 释放防内存泄露规范 |
-| 📦 **[依赖清单、代码混淆与构建指南 (DEPENDENCIES_AND_BUILD.md)](DEPENDENCIES_AND_BUILD.md)** | • 核心第三方依赖库版本清单与引入理由<br/>• Release 模式 R8 / ProGuard 防混淆规则关键点<br/>• 自动化本地单元测试架构（脱离 Android 框架的极速验证）<br/>• GitHub Actions CI/CD 质量门禁设计（测试失败快速熔断） |
+| 🧵 **[线程模型与组件生命周期 (THREADING_AND_LIFECYCLE.md)](THREADING_AND_LIFECYCLE.md)** | • Kotlin 协程调度模型（`Dispatchers.Main` 与 `Dispatchers.IO` 分工）<br/>• `SSHWidgetProvider` 协程作用域与 `SupervisorJob` 容错隔离<br/>• **核心复盘**：桌面小控件防并发与 AMS 广播队列防排队机制<br/>• ViewBinding 释放防内存泄露规范与 AlarmManager 硬件保活 |
+| 📦 **[依赖清单、代码混淆与构建指南 (DEPENDENCIES_AND_BUILD.md)](DEPENDENCIES_AND_BUILD.md)** | • 核心第三方依赖库版本清单与引入理由<br/>• **Release 构建规范**：R8 / ProGuard 混淆避坑（Ed25519 & Sun 警告压制）<br/>• 双轨签名机制、版本号单调递增管理与语义化里程碑发布规范<br/>• 自动化本地单元测试架构与 CI/CD 质量门禁设计 |
 
 ---
 
