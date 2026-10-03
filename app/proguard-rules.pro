@@ -5,8 +5,11 @@
 # 保留 sshj 协议核心与关联依赖
 -keep class net.schmizz.sshj.** { *; }
 -keep class com.hierynomus.** { *; }
+-keep class net.i2p.crypto.eddsa.** { *; }
 -dontwarn net.schmizz.sshj.**
 -dontwarn com.hierynomus.**
+-dontwarn net.i2p.crypto.eddsa.**
+-dontwarn sun.security.**
 
 # 保留 Room 数据库与反射
 -keep class androidx.room.** { *; }

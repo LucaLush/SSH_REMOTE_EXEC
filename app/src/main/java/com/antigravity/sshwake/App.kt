@@ -6,6 +6,9 @@ import com.antigravity.sshwake.security.CryptoHelper
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.Security
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 class App : Application() {
 
@@ -16,6 +19,8 @@ class App : Application() {
         val database: AppDatabase by lazy {
             AppDatabase.getInstance(instance)
         }
+
+        val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     }
 
     override fun onCreate() {

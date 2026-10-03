@@ -112,24 +112,29 @@ object WidgetManager {
             }
         }
 
-        // 绑定点击触发广播
-        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        } else {
-            PendingIntent.FLAG_UPDATE_CURRENT
-        }
+        // 绑定点击触发广播：仅在完全就绪的 IDLE 待命态允许点击
+        // 在运行态 (RUNNING) 及结果反馈态 (SUCCESS / ERROR) 下将 OnClickPendingIntent 设为 null，物理级切断桌面点击事件！
+        if (state == WidgetState.IDLE) {
+            val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            } else {
+                PendingIntent.FLAG_UPDATE_CURRENT
+            }
 
-        val triggerIntent = Intent(context, SSHWidgetProvider::class.java).apply {
-            action = SSHWidgetProvider.ACTION_TRIGGER_COMMAND
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            val triggerIntent = Intent(context, SSHWidgetProvider::class.java).apply {
+                action = SSHWidgetProvider.ACTION_TRIGGER_COMMAND
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            }
+            val pendingIntent = PendingIntent.getBroadcast(
+                context,
+                appWidgetId,
+                triggerIntent,
+                flags
+            )
+            views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
+        } else {
+            views.setOnClickPendingIntent(R.id.widget_root, null)
         }
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            appWidgetId,
-            triggerIntent,
-            flags
-        )
-        views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
 
         appWidgetManager.updateAppWidget(appWidgetId, views)
     }
@@ -244,9 +249,9 @@ object WidgetManager {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && appWidgetManager.isRequestPinAppWidgetSupported) {
             val provider = ComponentName(context, SSHWidgetProvider::class.java)
 
-            // 创建桌面图标暂存绑定
+            // 创建桌面图标暂存绑定（仅绑定 IDLE 态，不触发远程执行）
             val pinnedIntent = Intent(context, SSHWidgetProvider::class.java).apply {
-                action = SSHWidgetProvider.ACTION_TRIGGER_COMMAND
+                action = SSHWidgetProvider.ACTION_PINNED_WIDGET
                 putExtra("PENDING_COMMAND_ID", command.id)
             }
 

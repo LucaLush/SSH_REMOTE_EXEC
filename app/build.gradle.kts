@@ -4,7 +4,21 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
-val ciBuildNumber = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
+fun getGitCommitCount(): Int {
+    return try {
+        val process = ProcessBuilder("git", "rev-list", "--count", "HEAD").start()
+        process.inputStream.bufferedReader().readText().trim().toIntOrNull() ?: 1
+    } catch (_: Exception) {
+        1
+    }
+}
+
+val gitCount = getGitCommitCount()
+val ciRunNumber = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull()
+// 基础偏移量 3000，确保高于之前编译出的旧版本号 (1~2025)，保证覆盖安装 100% 成功
+val currentBuild = ciRunNumber ?: gitCount
+val appVersionCode = 3000 + currentBuild
+val appVersionName = "1.0.$currentBuild"
 
 android {
     namespace = "com.antigravity.sshwake"
@@ -14,9 +28,9 @@ android {
         applicationId = "com.antigravity.sshwake"
         minSdk = 26
         targetSdk = 34
-        // 云端 CI 自动递增版本号，确保每次构建都是新版本，支持系统顺畅覆盖升级
-        versionCode = ciBuildNumber
-        versionName = "1.0.$ciBuildNumber"
+        // 自动递增版本号，确保无论本地还是云端构建均高于已安装版本，支持系统顺畅覆盖升级
+        versionCode = appVersionCode
+        versionName = appVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

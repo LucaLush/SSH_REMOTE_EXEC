@@ -94,9 +94,9 @@ sudo apt autoremove -y
 
 This repository includes a ready-to-use GitHub Actions workflow (`.github/workflows/build.yml`) that automatically tests and packages the app on every push.
 
-### 1. Automated Debug Builds
-* Pushing to `main` triggers automated unit testing and builds `app-debug.apk`.
-* Download the compiled APK directly from the **Releases** section on the repository homepage or under **Actions** -> **Artifacts**.
+### 1. Automated Builds
+* Pushing to `main` triggers automated unit testing and builds both `app-release.apk` (optimized ProGuard build) and `app-debug.apk`.
+* Download the compiled APKs directly from the **Releases** section on the repository homepage or under **Actions** -> **Artifacts**.
 
 ### 2. Automated Official Release Packaging
 Configure the following 4 secrets under **Settings** -> **Secrets and variables** -> **Actions**:
