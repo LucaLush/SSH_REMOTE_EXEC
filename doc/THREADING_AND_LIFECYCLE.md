@@ -58,7 +58,7 @@ class SSHWidgetProvider : AppWidgetProvider() {
    - 保证若某次 SSH 连接由于超时抛出异常，**不会连带取消整个 Provider 的协程作用域**，后续的小部件点击依然能正常响应。
 2. **防重并发互斥锁**：
    - 在接收到点击事件时，校验 `activeRunningWidgets` 以及 SharedPreferences 中的状态；
-   - 若当前小部件已处于 `RUNNING` 且未超期，立即弹 Toast 提示“正在执行中，请稍候”并返回，彻底杜绝短时间快速连点导致并发发包、SSH 连接池打满或远端服务器状态错乱。
+   - 若当前小部件已处于 `RUNNING` 且未超期，直接静默忽略此次点击并返回（不弹出任何多余的 Toast 打扰用户），彻底杜绝连续快速点击导致并发发包、SSH 连接池打满或远端服务器状态错乱。
 3. **`goAsync()` 保活机制**：
    - 调用 `val pendingResult = goAsync()`，向 Android ActivityManager 注册异步广播生命周期，确保在网络通信期间进程不被系统视为空闲而提前强制休眠；
    - 最终在 `finally` 块中调用 `pendingResult.finish()` 释放广播。

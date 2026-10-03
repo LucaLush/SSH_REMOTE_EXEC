@@ -104,9 +104,8 @@ class SSHWidgetProvider : AppWidgetProvider() {
             val elapsed = System.currentTimeMillis() - stateTime
             val isRunningStale = (currentState == WidgetState.RUNNING && elapsed > 25000L) // 超过25秒视为卡死的异常态，允许脱困重试
 
-            // 若正处于 RUNNING 状态且未超期，直接拦截并提示用户，坚决不进行重复并发请求
+            // 若正处于 RUNNING 状态且未超期，直接静默忽略，不弹 Toast，不发起重复并发请求
             if (activeRunningWidgets.contains(appWidgetId) || (currentState == WidgetState.RUNNING && !isRunningStale)) {
-                Toast.makeText(context, R.string.widget_already_running, Toast.LENGTH_SHORT).show()
                 return
             }
 

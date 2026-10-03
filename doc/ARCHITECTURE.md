@@ -129,7 +129,7 @@ sequenceDiagram
 stateDiagram-v2
     [*] --> IDLE : 添加小部件 / 重置完成
     IDLE --> RUNNING : 用户点击桌面小部件 (进入执行态，蓝色旋转)
-    RUNNING --> RUNNING : 用户再次点击 -> 拦截并提示“正在执行中，请稍候” (防重防抖)
+    RUNNING --> RUNNING : 用户再次连续点击 -> 静默忽略，不弹窗不打扰，不重复发起请求
     RUNNING --> SUCCESS : SSH 执行返回 0 (显示绿色对勾)
     RUNNING --> ERROR : 网络握手失败 / 超时 / 异常 (显示红色感叹号)
     SUCCESS --> IDLE : 定时 800ms 到期 (内存延时 + AlarmManager 双保险)
