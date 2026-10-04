@@ -157,3 +157,22 @@ override fun onDestroyView() {
 ### 协程生命周期绑定 (`viewLifecycleOwner.lifecycleScope`)
 - 在 Fragment 中发起的所有数据操作（如弹窗保存、删除确认）均绑定在 `viewLifecycleOwner.lifecycleScope` 上；
 - 用户如果在网络请求中快速切换 Tab 或退出当前页面，关联的协程会自动取消，杜绝空指针与 View 泄露。
+
+---
+
+## 5. 进程销毁与页面状态恢复 (Process Death & State Restoration)
+
+### 后台长驻进程被杀（Activity Recreation）导致的页面冻结问题
+当 App 在后台放置时间较长时，Android 系统由于低内存机制（Low Memory Killer）会杀死后台应用进程。当用户再次从任务栈调出 App 时：
+1. **现象**：
+   - 界面停留在之前展示的页面，无论如何点击底部导航栏各个 Tab，页面卡住无法切换。
+2. **根因剖析**：
+   - `MainActivity` 重新执行 `onCreate(savedInstanceState)`；
+   - 系统 `FragmentManager` 会自动恢复并挂载销毁前的老 Fragment 实例到布局容器中；
+   - 若 Activity 仅在成员变量处硬编码 `private val commandsFragment = CommandsFragment()`，由于 `savedInstanceState != null`，这些新实例**从未被添加到 FragmentManager 中**；
+   - 用户点击底部导航触发 `show(target) / hide(activeFragment)` 时，操作的是未挂载的孤立实例，而在屏幕上渲染的恢复实例始终未被修改，导致 UI 彻底冻结。
+3. **彻底解决方案**：
+   - 在 `onCreate` 中增加分支判断：当 `savedInstanceState != null` 时，通过 `supportFragmentManager.findFragmentByTag(TAG)` 重新认领系统恢复出来的真实实例；
+   - 在 `onSaveInstanceState(outState)` 中持久化当前激活页面的 Tag；
+   - 恢复时统一同步各 Fragment 的 `show/hide` 状态及底部导航栏选中的 Tab，保证无论在后台挂置多久，恢复后均能丝滑切换。
+

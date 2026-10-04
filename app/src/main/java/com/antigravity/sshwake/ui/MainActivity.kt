@@ -12,10 +12,17 @@ import com.antigravity.sshwake.ui.servers.ServersFragment
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val commandsFragment = CommandsFragment()
-    private val serversFragment = ServersFragment()
-    private val keysFragment = KeysFragment()
-    private var activeFragment: Fragment = commandsFragment
+    private lateinit var commandsFragment: CommandsFragment
+    private lateinit var serversFragment: ServersFragment
+    private lateinit var keysFragment: KeysFragment
+    private var activeFragment: Fragment? = null
+
+    companion object {
+        private const val TAG_COMMANDS = "COMMANDS"
+        private const val TAG_SERVERS = "SERVERS"
+        private const val TAG_KEYS = "KEYS"
+        private const val KEY_ACTIVE_TAG = "KEY_ACTIVE_TAG"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,12 +39,55 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (savedInstanceState == null) {
+            commandsFragment = CommandsFragment()
+            serversFragment = ServersFragment()
+            keysFragment = KeysFragment()
+
             supportFragmentManager.beginTransaction()
-                .add(R.id.nav_host_fragment, keysFragment, "KEYS").hide(keysFragment)
-                .add(R.id.nav_host_fragment, serversFragment, "SERVERS").hide(serversFragment)
-                .add(R.id.nav_host_fragment, commandsFragment, "COMMANDS")
+                .add(R.id.nav_host_fragment, keysFragment, TAG_KEYS).hide(keysFragment)
+                .add(R.id.nav_host_fragment, serversFragment, TAG_SERVERS).hide(serversFragment)
+                .add(R.id.nav_host_fragment, commandsFragment, TAG_COMMANDS)
                 .commit()
             activeFragment = commandsFragment
+            binding.topAppBar.title = getString(R.string.title_commands)
+        } else {
+            // 系统长时间在后台被杀死后重新打开：必须从 FragmentManager 认领已恢复的真实实例
+            commandsFragment = supportFragmentManager.findFragmentByTag(TAG_COMMANDS) as? CommandsFragment ?: CommandsFragment()
+            serversFragment = supportFragmentManager.findFragmentByTag(TAG_SERVERS) as? ServersFragment ?: ServersFragment()
+            keysFragment = supportFragmentManager.findFragmentByTag(TAG_KEYS) as? KeysFragment ?: KeysFragment()
+
+            val activeTag = savedInstanceState.getString(KEY_ACTIVE_TAG, TAG_COMMANDS)
+            val currentTarget = when (activeTag) {
+                TAG_SERVERS -> serversFragment
+                TAG_KEYS -> keysFragment
+                else -> commandsFragment
+            }
+            activeFragment = currentTarget
+
+            binding.topAppBar.title = when (activeTag) {
+                TAG_SERVERS -> getString(R.string.title_servers)
+                TAG_KEYS -> getString(R.string.title_keys)
+                else -> getString(R.string.title_commands)
+            }
+
+            // 同步恢复各 Fragment 真实显示状态，保证只有当前项处于显示状态
+            val transaction = supportFragmentManager.beginTransaction()
+            listOf(commandsFragment, serversFragment, keysFragment).forEach { f ->
+                if (f.isAdded) {
+                    if (f == currentTarget) transaction.show(f) else transaction.hide(f)
+                }
+            }
+            transaction.commit()
+
+            // 同步底部导航栏选中的 Tab
+            val targetNavId = when (activeTag) {
+                TAG_SERVERS -> R.id.menu_servers
+                TAG_KEYS -> R.id.menu_keys
+                else -> R.id.menu_commands
+            }
+            if (binding.bottomNavigation.selectedItemId != targetNavId) {
+                binding.bottomNavigation.selectedItemId = targetNavId
+            }
         }
 
         binding.bottomNavigation.setOnItemSelectedListener { item ->
@@ -59,12 +109,35 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        val activeTag = when (activeFragment) {
+            serversFragment -> TAG_SERVERS
+            keysFragment -> TAG_KEYS
+            else -> TAG_COMMANDS
+        }
+        outState.putString(KEY_ACTIVE_TAG, activeTag)
+    }
+
     private fun switchFragment(target: Fragment, title: String) {
         if (activeFragment != target) {
-            supportFragmentManager.beginTransaction()
-                .hide(activeFragment)
-                .show(target)
-                .commit()
+            val transaction = supportFragmentManager.beginTransaction()
+            listOf(commandsFragment, serversFragment, keysFragment).forEach { f ->
+                if (f != target && f.isAdded) {
+                    transaction.hide(f)
+                }
+            }
+            if (target.isAdded) {
+                transaction.show(target)
+            } else {
+                val tag = when (target) {
+                    serversFragment -> TAG_SERVERS
+                    keysFragment -> TAG_KEYS
+                    else -> TAG_COMMANDS
+                }
+                transaction.add(R.id.nav_host_fragment, target, tag)
+            }
+            transaction.commit()
             activeFragment = target
             binding.topAppBar.title = title
         }
